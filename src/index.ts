@@ -1,16 +1,22 @@
-// Import the necessary modules from the MCP SDK
+// src/index.ts
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+
+// Import tool registration functions
+import { registerPostTools } from "./tools/postTools.js";
+// TODO: Add these imports as you create the other tool files:
+// import { registerMediaTools } from "./tools/mediaTools.js";
+// import { registerTaxonomyTools } from "./tools/taxonomyTools.js"; 
+// import { registerUserTools } from "./tools/userTools.js";
+// import { registerSystemTools } from "./tools/systemTools.js";
+
+// Import WordPress API functions for authentication
 import { 
-  createPost, 
   setWordPressConfig, 
   testSiteConnection,
   testAuthentication,
-  getCategories,
-  getTags
 } from "./wordpress/api.js";
-import { saveDraft, loadDraft, truncateContent, formatPostContent } from './utils/helpers.js'; 
 
 // Create the MCP server instance with metadata
 const server = new McpServer({
@@ -23,6 +29,10 @@ const server = new McpServer({
   }
 });
 
+// ============================================
+// AUTHENTICATION & SYSTEM TOOLS
+// ============================================
+
 server.tool(
   "authenticate-wp",
   "Connect to a WordPress site with credentials",
@@ -34,7 +44,7 @@ server.tool(
   },
   async ({ siteUrl, username, password, appPassword }) => {
     try {
-      
+      // Validate credentials
       if (!password && !appPassword) {
         return {
           content: [{
@@ -45,9 +55,13 @@ server.tool(
         };
       }
 
-    
+      // Update config
       setWordPressConfig({ siteUrl, username, password, appPassword });
+      
+      // Test authentication
       const authResult = await testAuthentication();
+      
+      // Type-safe success check
       if (!authResult.success || !authResult.userInfo) {
         return {
           content: [{
@@ -57,6 +71,8 @@ server.tool(
           isError: true
         };
       }
+
+      // Safe role formatting
       const roles = authResult.userInfo.roles.join(', ') || 'no roles assigned';
       
       return {
@@ -81,234 +97,6 @@ server.tool(
   }
 );
 
-// Register the create-blog-post tool
-server.tool(
-  "create-blog-post",
-  "Create a blog post in WordPress",
-  {
-    title: z.string().describe("The title of the blog post"),
-    content: z.string().describe("The HTML content of the blog post"),
-    status: z.enum(["draft", "publish", "pending", "future"]).default("draft").describe("Publication status"),
-    excerpt: z.string().optional().describe("Optional post excerpt/summary"),
-    categories: z.array(z.number()).optional().describe("Array of category IDs"),
-    tags: z.array(z.number()).optional().describe("Array of tag IDs")
-  },
-  async ({ title, content, status, excerpt, categories, tags }) => {
-    try {
-      // Call WordPress API to create post
-      const result = await createPost(
-        title, 
-        content, 
-        status || 'draft', 
-        excerpt || '', 
-        categories || [], 
-        tags || []
-      );
-      
-      if (!result.success) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Failed to create blog post: ${JSON.stringify(result.error)}`
-            }
-          ],
-          isError: true
-        };
-      }
-      
-      return {
-        content: [
-          {
-            type: "text",
-             text: `Blog post created successfully!\n\nTitle: ${result.post?.title}\nStatus: ${result.post?.status}\nLink: ${result.post?.link}\nID: ${result.post?.id}`
-          }
-        ]
-      };
-    } catch (error: any) {
-      console.error("Error executing create-blog-post tool:", error);
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Error creating blog post: ${error.message || "Unknown error"}`
-          }
-        ],
-        isError: true
-      };
-    }
-  }
-);
-
-// Register the get-wp-categories tool
-interface WPCategory {
-  id: number;
-  name: string;
-  count: number;
-  slug?: string;
-}
-
-server.tool(
-  "get-wp-categories",
-  "Get available WordPress categories",
-  {},
-  async () => {
-    try {
-      const result = await getCategories();
-      
-      if (!result.success) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Failed to get WordPress categories: ${JSON.stringify(result.error)}`
-            }
-          ],
-          isError: true
-        };
-      }
-      
-      // Format the categories for better readability
-      const categoriesList = Array.isArray(result.categories)
-        ? result.categories.map((cat: WPCategory) => `- ID: ${cat.id}, Name: ${cat.name}, Posts: ${cat.count}`).join('\n')
-        : "No categories found.";
-      
-      return {
-        content: [
-          {
-            type: "text",
-            text: `WordPress Categories:\n\n${categoriesList}`
-          }
-        ]
-      };
-    } catch (error: any) {
-      console.error("Error executing get-wp-categories tool:", error);
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Error getting WordPress categories: ${error.message || "Unknown error"}`
-          }
-        ],
-        isError: true
-      };
-    }
-  }
-);
-
-// Register the get-wp-tags tool
-
-interface WPTag {
-  id: number;
-  name: string;
-  count: number;
-  slug?: string;
-}
-
-server.tool(
-  "get-wp-tags",
-  "Get available WordPress tags",
-  {},
-  async () => {
-    try {
-      const result = await getTags();
-      
-      if (!result.success) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Failed to get WordPress tags: ${JSON.stringify(result.error)}`
-            }
-          ],
-          isError: true
-        };
-      }
-      
-      // Format the tags for better readability
-      const tagsList = Array.isArray(result.tags)
-        ? result.tags.map((tag: WPTag) => `- ID: ${tag.id}, Name: ${tag.name}, Posts: ${tag.count}`).join('\n')
-        : "No tags found.";
-      
-      return {
-        content: [
-          {
-            type: "text",
-            text: `WordPress Tags:\n\n${tagsList}`
-          }
-        ]
-      };
-    } catch (error: any) {
-      console.error("Error executing get-wp-tags tool:", error);
-      return {
-        content: [
-          {
-            type: "text",
-            text: `Error getting WordPress tags: ${error.message || "Unknown error"}`
-          }
-        ],
-        isError: true
-      };
-    }
-  }
-);
-
-// Register save-draft tool
-server.tool(
-  "save-draft",
-  "Save a post draft locally",
-  {
-    postId: z.string().describe("Unique ID for the draft"),
-    title: z.string().describe("Post title"),
-    content: z.string().describe("Post content")
-  },
-  async ({ postId, title, content }) => {
-    try {
-      await saveDraft(postId, { title, content });
-      return {
-        content: [{ type: "text", text: `Draft saved (ID: ${postId})` }]
-      };
-    } catch (error) {
-      // Type guard to check if it's an Error object
-      const errorMessage = error instanceof Error 
-        ? error.message 
-        : 'Unknown error occurred';
-      
-      return {
-        content: [{ type: "text", text: `Error saving draft: ${errorMessage}` }],
-        isError: true
-      };
-    }
-  }
-);
-
-// Register load-draft tool
-server.tool(
-  "load-draft",
-  "Load a saved draft",
-  {
-    postId: z.string().describe("Draft ID to load")
-  },
-  async ({ postId }) => {
-    const draft = await loadDraft(postId);
-    if (!draft) {
-      return {
-        content: [{ type: "text", text: `No draft found with ID: ${postId}` }],
-        isError: true
-      };
-    }
-    return {
-      content: [
-        { type: "text", text: `Draft loaded (ID: ${postId})` },
-        { type: "text", text: `Title: ${draft.title}` },
-        { type: "text", text: `Content: ${truncateContent(draft.content, 100)}` }
-      ]
-    };
-  }
-);
-
-
-// Register test wp connection tool 
 server.tool(
   "test-wp-connection",
   "Test if a WordPress site is reachable",
@@ -327,28 +115,23 @@ server.tool(
     };
   }
 );
+// ============================================
+// REGISTER MODULAR TOOL SETS
+// ============================================
 
+// Register all post-related tools
+registerPostTools(server);
 
-// Format content tool 
+// TODO: Register other tool sets as you create them:
+// registerMediaTools(server);
+// registerTaxonomyTools(server);
+// registerUserTools(server);
+// registerSystemTools(server);
 
-server.tool(
-  "format-wp-content",
-  "Format raw text into WordPress-ready HTML",
-  {
-    content: z.string().describe("Raw text content")
-  },
-  async ({ content }) => {
-    return {
-      content: [{
-        type: "text",
-        text: formatPostContent(content)
-      }]
-    };
-  }
-);
+// ============================================
+// SERVER STARTUP
+// ============================================
 
-
-// Add a basic main function to be expanded later
 async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
