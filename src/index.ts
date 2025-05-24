@@ -23,77 +23,6 @@ const server = new McpServer({
   }
 });
 
-// Register the authenticate-wp tool
-// server.tool(
-//   "authenticate-wp",
-//   "Connect to a WordPress site with credentials",
-//   {
-//     siteUrl: z.string().url().describe("The URL of the WordPress site"),
-//     username: z.string().describe("WordPress username"),
-//     password: z.string().optional().describe("WordPress password (use app password for better security)"),
-//     appPassword: z.string().optional().describe("WordPress application password (preferred over regular password)")
-//   },
-//   async ({ siteUrl, username, password, appPassword }) => {
-//     try {
-//       // Validate that either password or appPassword is provided
-//       if (!password && !appPassword) {
-//         return {
-//           content: [
-//             {
-//               type: "text",
-//               text: "Either password or appPassword must be provided"
-//             }
-//           ],
-//           isError: true
-//         };
-//       }
-      
-//       // Update WordPress configuration
-//       setWordPressConfig({
-//         siteUrl,
-//         username,
-//         password,
-//         appPassword
-//       });
-      
-//       // Test authentication
-//       const authResult = await testAuthentication();
-      
-//       if (!authResult.success) {
-//         return {
-//           content: [
-//             {
-//               type: "text",
-//               text: `Failed to authenticate with WordPress: ${JSON.stringify(authResult.error)}`
-//             }
-//           ],
-//           isError: true
-//         };
-//       }
-      
-//       return {
-//         content: [
-//           {
-//             type: "text",
-//             text: `Successfully authenticated to WordPress site at ${siteUrl}\n\nUser: ${authResult.userInfo.name}\nRoles: ${authResult.userInfo.roles.join(', ')}`
-//           }
-//         ]
-//       };
-//     } catch (error: any) {
-//       console.error("Error executing authenticate-wp tool:", error);
-//       return {
-//         content: [
-//           {
-//             type: "text",
-//             text: `Error authenticating with WordPress: ${error.message || "Unknown error"}`
-//           }
-//         ],
-//         isError: true
-//       };
-//     }
-//   }
-// );
-
 server.tool(
   "authenticate-wp",
   "Connect to a WordPress site with credentials",
@@ -105,7 +34,7 @@ server.tool(
   },
   async ({ siteUrl, username, password, appPassword }) => {
     try {
-      // Validate credentials
+      
       if (!password && !appPassword) {
         return {
           content: [{
@@ -116,13 +45,9 @@ server.tool(
         };
       }
 
-      // Update config
+    
       setWordPressConfig({ siteUrl, username, password, appPassword });
-      
-      // Test authentication
       const authResult = await testAuthentication();
-      
-      // Type-safe success check
       if (!authResult.success || !authResult.userInfo) {
         return {
           content: [{
@@ -132,8 +57,6 @@ server.tool(
           isError: true
         };
       }
-
-      // Safe role formatting
       const roles = authResult.userInfo.roles.join(', ') || 'no roles assigned';
       
       return {

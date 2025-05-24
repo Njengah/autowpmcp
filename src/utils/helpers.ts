@@ -28,12 +28,10 @@ export function validatePostContent(content: string): { valid: boolean; error?: 
  * @returns Formatted HTML content with proper paragraph tags
  */
 export function formatPostContent(content: string): string {
-  // If it's already HTML, return as is
   if (content.includes('<p>') || content.includes('<h1>') || content.includes('<div>')) {
     return content;
   }
   
-  // Add paragraph tags to plain text
   return content
     .split('\n\n')
     .map(paragraph => paragraph.trim())
@@ -68,14 +66,12 @@ export function createBlogPostSchema() {
  * @returns Truncated content with ellipsis
  */
 export function truncateContent(content: string, maxLength: number = 150): string {
-  // First remove any HTML tags
+
   const plainText = content.replace(/<[^>]*>?/gm, '');
   
   if (plainText.length <= maxLength) {
     return plainText;
   }
-  
-  // Return truncated content with ellipsis
   return plainText.substring(0, maxLength).trim() + '...';
 }
 
@@ -87,14 +83,12 @@ export function truncateContent(content: string, maxLength: number = 150): strin
 export function extractMediaLinks(content: string): string[] {
   const mediaLinks: string[] = [];
   
-  // Extract image sources
   const imgRegex = /<img[^>]+src="([^">]+)"/g;
   let match;
   while ((match = imgRegex.exec(content)) !== null) {
     mediaLinks.push(match[1]);
   }
   
-  // Extract video sources
   const videoRegex = /<video[^>]+src="([^">]+)"/g;
   while ((match = videoRegex.exec(content)) !== null) {
     mediaLinks.push(match[1]);
@@ -116,7 +110,7 @@ export async function loadAllDrafts(): Promise<Record<string, { title: string; c
     const data = await fs.readFile(DRAFTS_FILE, 'utf-8');
     return JSON.parse(data);
   } catch {
-    return {}; // File doesn't exist yet
+    return {}; 
   }
 }
 
