@@ -5,9 +5,10 @@ import { z } from "zod";
 
 // Import tool registration functions
 import { registerPostTools } from "./tools/postTools.js";
+import { registerTaxonomyTools } from "./tools/taxonomyTools.js"; 
+import { registerMediaTools } from "./tools/mediaTools.js";
+
 // TODO: Add these imports as you create the other tool files:
-// import { registerMediaTools } from "./tools/mediaTools.js";
-// import { registerTaxonomyTools } from "./tools/taxonomyTools.js"; 
 // import { registerUserTools } from "./tools/userTools.js";
 // import { registerSystemTools } from "./tools/systemTools.js";
 
@@ -119,12 +120,18 @@ server.tool(
 // REGISTER MODULAR TOOL SETS
 // ============================================
 
-// Register all post-related tools
-registerPostTools(server);
+  // Register all post-related tools
+  registerPostTools(server);
+
+  // Register media-related tools
+  registerMediaTools(server);
+
+  // Register Taxonomy tools
+  registerTaxonomyTools(server);
 
 // TODO: Register other tool sets as you create them:
-// registerMediaTools(server);
-// registerTaxonomyTools(server);
+
+// 
 // registerUserTools(server);
 // registerSystemTools(server);
 
