@@ -7,10 +7,8 @@ import { z } from "zod";
 import { registerPostTools } from "./tools/postTools.js";
 import { registerTaxonomyTools } from "./tools/taxonomyTools.js"; 
 import { registerMediaTools } from "./tools/mediaTools.js";
-
-// TODO: Add these imports as you create the other tool files:
-// import { registerUserTools } from "./tools/userTools.js";
-// import { registerSystemTools } from "./tools/systemTools.js";
+import { registerUserTools } from "./tools/userTools.js";
+import { registerSystemTools } from "./tools/systemTools.js";
 
 // Import WordPress API functions for authentication
 import { 
@@ -23,7 +21,7 @@ import {
 const server = new McpServer({
   name: "AutoWP",
   version: "1.0.0",
-  description: "WordPress blog post creation and publishing via Claude",
+  description: "WordPress Site Management via LLM example - Claude Desktop",
   capabilities: {
     resources: {},
     tools: {}
@@ -129,11 +127,11 @@ server.tool(
   // Register Taxonomy tools
   registerTaxonomyTools(server);
 
-// TODO: Register other tool sets as you create them:
+  // Register user and role management tools
+   registerUserTools(server);
 
-// 
-// registerUserTools(server);
-// registerSystemTools(server);
+  // Register system and security tools
+  registerSystemTools(server);
 
 // ============================================
 // SERVER STARTUP
