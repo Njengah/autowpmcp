@@ -34,6 +34,10 @@ It provides a secure, standardized way for AI assistants to interact with WordPr
   - Loads previously saved content
   - Enables iterative content development
 
+## Installation & Authentication
+
+
+
 ## Why It's Useful
 
 Instead of you having to log into WordPress manually, write posts, format content, and manage everything through the web interface, this MCP server helps you create, format, and publish content directly from our conversation. It's a WordPress automation assistant that bridges the gap between AI conversation and WordPress site management.
@@ -59,5 +63,3 @@ Instead of you having to log into WordPress manually, write posts, format conten
 - **Tag Management:** View and assign existing tags to posts
 - **Draft Workflow:** Save drafts locally and work on them over time
 - **Publishing:** Create posts as drafts or publish them directly (depending on your user permissions)
-
-## Installation & Authentication
