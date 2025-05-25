@@ -112,6 +112,59 @@ interface WPTaxonomy {
   rest_base: string;
 }
 
+interface WPUser {
+  id: number;
+  username: string;
+  name: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  roles: string[];
+  registered_date: string;
+  capabilities: Record<string, boolean>;
+}
+
+interface WPRole {
+  name: string;
+  display_name: string;
+  capabilities: Record<string, boolean>;
+}
+
+interface ListUsersOptions {
+  page?: number;
+  perPage?: number;
+  role?: string;
+  search?: string;
+  orderBy?: string;
+  order?: string;
+  registeredAfter?: string;
+  registeredBefore?: string;
+}
+
+interface CreateUserData {
+  username: string;
+  email: string;
+  password: string;
+  firstName?: string;
+  lastName?: string;
+  displayName?: string;
+  role?: string;
+  bio?: string;
+  website?: string;
+  sendNotification?: boolean;
+}
+
+interface UpdateUserData {
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  displayName?: string;
+  bio?: string;
+  website?: string;
+  password?: string;
+}
+
+
 
 export function setWordPressConfig(config: Partial<WordPressConfig>): void {
   wpConfig = { ...wpConfig, ...config };
@@ -840,6 +893,328 @@ export async function listTaxonomies(
     };
   } catch (error: unknown) {
     console.error('Error listing taxonomies:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+// User Tools  
+
+
+export async function listUsers(options: ListUsersOptions = {}): Promise<{ success: boolean; users?: WPUser[]; totalPages?: number; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const params = new URLSearchParams();
+    if (options.page) params.append('page', options.page.toString());
+    if (options.perPage) params.append('per_page', options.perPage.toString());
+    if (options.role) params.append('roles', options.role);
+    if (options.search) params.append('search', options.search);
+    if (options.orderBy) params.append('orderby', options.orderBy);
+    if (options.order) params.append('order', options.order);
+    if (options.registeredAfter) params.append('after', options.registeredAfter);
+    if (options.registeredBefore) params.append('before', options.registeredBefore);
+
+    const authHeader = await getAuthHeader();
+    const response = await axios.get<WPUser[]>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/users?${params.toString()}`,
+      { headers: { 'Authorization': authHeader } }
+    );
+
+    const totalPages = parseInt(response.headers['x-wp-totalpages'] || '1');
+
+    return {
+      success: true,
+      users: response.data,
+      totalPages
+    };
+  } catch (error: unknown) {
+    console.error('Error listing users:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function createUser(userData: CreateUserData): Promise<{ success: boolean; user?: WPUser; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const payload = {
+      username: userData.username,
+      email: userData.email,
+      password: userData.password,
+      first_name: userData.firstName || '',
+      last_name: userData.lastName || '',
+      name: userData.displayName || userData.username,
+      roles: userData.role ? [userData.role] : ['subscriber'],
+      description: userData.bio || '',
+      url: userData.website || ''
+    };
+
+    const authHeader = await getAuthHeader();
+    const response = await axios.post<WPUser>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/users`,
+      payload,
+      { headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' } }
+    );
+
+    return {
+      success: true,
+      user: response.data
+    };
+  } catch (error: unknown) {
+    console.error('Error creating user:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function updateUser(userId: number, userData: UpdateUserData): Promise<{ success: boolean; user?: WPUser; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const payload: any = {};
+    if (userData.email) payload.email = userData.email;
+    if (userData.firstName) payload.first_name = userData.firstName;
+    if (userData.lastName) payload.last_name = userData.lastName;
+    if (userData.displayName) payload.name = userData.displayName;
+    if (userData.bio) payload.description = userData.bio;
+    if (userData.website) payload.url = userData.website;
+    if (userData.password) payload.password = userData.password;
+
+    const authHeader = await getAuthHeader();
+    const response = await axios.post<WPUser>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/users/${userId}`,
+      payload,
+      { headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' } }
+    );
+
+    return {
+      success: true,
+      user: response.data
+    };
+  } catch (error: unknown) {
+    console.error('Error updating user:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function disableUser(userId: number, reason?: string): Promise<{ success: boolean; message?: string; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const response = await axios.delete(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/users/${userId}?reassign=1`,
+      { headers: { 'Authorization': authHeader } }
+    );
+
+    return {
+      success: true,
+      message: `User ${userId} has been disabled${reason ? ` (Reason: ${reason})` : ''}`
+    };
+  } catch (error: unknown) {
+    console.error('Error disabling user:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function resetUserPassword(options: { userId?: number; email?: string; sendEmail?: boolean }): Promise<{ success: boolean; message?: string; resetLink?: string; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    let userId = options.userId;
+    if (!userId && options.email) {
+      const usersResult = await listUsers({ search: options.email, perPage: 1 });
+      if (!usersResult.success || !usersResult.users?.length) {
+        throw new Error('User not found with provided email');
+      }
+      userId = usersResult.users[0].id;
+    }
+
+    if (!userId) throw new Error('User ID could not be determined');
+
+    const newPassword = Math.random().toString(36).slice(-12);
+    const updateResult = await updateUser(userId, { password: newPassword });
+
+    if (!updateResult.success) {
+      throw new Error('Failed to reset password');
+    }
+
+    return {
+      success: true,
+      message: `Password reset for user ${userId}. ${options.sendEmail ? 'Reset notification sent via email.' : 'New password generated.'}`,
+      resetLink: options.sendEmail ? undefined : `Temporary password: ${newPassword}`
+    };
+  } catch (error: unknown) {
+    console.error('Error resetting user password:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function setUserRole(userId: number, role: string, removeOtherRoles: boolean = true): Promise<{ success: boolean; user?: WPUser; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const payload = {
+      roles: removeOtherRoles ? [role] : undefined,
+      role: !removeOtherRoles ? role : undefined
+    };
+
+    const authHeader = await getAuthHeader();
+    const response = await axios.post<WPUser>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/users/${userId}`,
+      payload,
+      { headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' } }
+    );
+
+    return {
+      success: true,
+      user: response.data
+    };
+  } catch (error: unknown) {
+    console.error('Error setting user role:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function listUserRoles(includeCapabilities: boolean = false): Promise<{ success: boolean; roles?: WPRole[]; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const response = await axios.get(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/types/post`,
+      { headers: { 'Authorization': authHeader } }
+    );
+
+    const defaultRoles: WPRole[] = [
+      {
+        name: 'administrator',
+        display_name: 'Administrator',
+        capabilities: includeCapabilities ? {
+          'switch_themes': true,
+          'edit_themes': true,
+          'activate_plugins': true,
+          'edit_plugins': true,
+          'edit_users': true,
+          'edit_files': true,
+          'manage_options': true,
+          'moderate_comments': true,
+          'manage_categories': true,
+          'manage_links': true,
+          'upload_files': true,
+          'import': true,
+          'unfiltered_html': true,
+          'edit_posts': true,
+          'edit_others_posts': true,
+          'edit_published_posts': true,
+          'publish_posts': true,
+          'edit_pages': true,
+          'read': true,
+          'level_10': true,
+          'level_9': true,
+          'level_8': true,
+          'level_7': true,
+          'level_6': true,
+          'level_5': true,
+          'level_4': true,
+          'level_3': true,
+          'level_2': true,
+          'level_1': true,
+          'level_0': true
+        } : {}
+      },
+      {
+        name: 'editor',
+        display_name: 'Editor',
+        capabilities: includeCapabilities ? {
+          'moderate_comments': true,
+          'manage_categories': true,
+          'manage_links': true,
+          'upload_files': true,
+          'unfiltered_html': true,
+          'edit_posts': true,
+          'edit_others_posts': true,
+          'edit_published_posts': true,
+          'publish_posts': true,
+          'edit_pages': true,
+          'read': true,
+          'level_7': true,
+          'level_6': true,
+          'level_5': true,
+          'level_4': true,
+          'level_3': true,
+          'level_2': true,
+          'level_1': true,
+          'level_0': true
+        } : {}
+      },
+      {
+        name: 'author',
+        display_name: 'Author',
+        capabilities: includeCapabilities ? {
+          'upload_files': true,
+          'edit_posts': true,
+          'edit_published_posts': true,
+          'publish_posts': true,
+          'read': true,
+          'level_2': true,
+          'level_1': true,
+          'level_0': true
+        } : {}
+      },
+      {
+        name: 'contributor',
+        display_name: 'Contributor',
+        capabilities: includeCapabilities ? {
+          'edit_posts': true,
+          'read': true,
+          'level_1': true,
+          'level_0': true
+        } : {}
+      },
+      {
+        name: 'subscriber',
+        display_name: 'Subscriber',
+        capabilities: includeCapabilities ? {
+          'read': true,
+          'level_0': true
+        } : {}
+      }
+    ];
+
+    return {
+      success: true,
+      roles: defaultRoles
+    };
+  } catch (error: unknown) {
+    console.error('Error listing user roles:', error);
     return {
       success: false,
       error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
