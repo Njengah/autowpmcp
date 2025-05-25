@@ -1,4 +1,4 @@
-# AutoWP MCP
+# AutoWP MCP Server
 
 AutoWP MCP (Model Context Protocol) server connects Claude to WordPress sites and allows users to ask Claude to work on different tasks on their WordPress site like create and post blog posts and other WordPress site management tasks.
 
