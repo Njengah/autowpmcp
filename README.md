@@ -1,12 +1,12 @@
 # AutoWP MCP Server
 
-AutoWP MCP (Model Context Protocol) server connects Claude to WordPress sites and allows users to ask Claude to work on different tasks on their WordPress site like create and post blog posts and other WordPress site management tasks.
-
-![AutoWP MCP Login Prompt Example](screenshots/login_prompt-example.gif)
-
-It acts as a bridge between LLM clients like Claude Desktop and WordPress websites.
+![AutoWP MCP Login Prompt Example](screenshots/autowp_banner.png)
 
 ![MCP badge](https://badge.mcpx.dev "MCP") ![MCP Server](https://badge.mcpx.dev?type=server)
+
+AutoWP MCP (Model Context Protocol) server connects Claude to WordPress sites and allows users to ask Claude to work on different tasks on their WordPress site like create and post blog posts and other WordPress site management tasks. It acts as a bridge between LLM clients like Claude Desktop and WordPress websites.
+
+![AutoWP MCP Login Prompt Example](screenshots/login_prompt-example.gif)
 
 ## Features
 

@@ -7,7 +7,6 @@ import { registerPostTools } from "./tools/postTools.js";
 import { registerTaxonomyTools } from "./tools/taxonomyTools.js";
 import { registerMediaTools } from "./tools/mediaTools.js";
 import { registerUserTools } from "./tools/userTools.js";
-import { registerSystemTools } from "./tools/systemTools.js";
 // Import WordPress API functions for authentication
 import { setWordPressConfig, testSiteConnection, testAuthentication, } from "./wordpress/api.js";
 // Create the MCP server instance with metadata
@@ -30,7 +29,6 @@ server.tool("authenticate-wp", "Connect to a WordPress site with credentials", {
     appPassword: z.string().optional().describe("WordPress application password (preferred over regular password)")
 }, async ({ siteUrl, username, password, appPassword }) => {
     try {
-        // Validate credentials
         if (!password && !appPassword) {
             return {
                 content: [{
@@ -40,11 +38,8 @@ server.tool("authenticate-wp", "Connect to a WordPress site with credentials", {
                 isError: true
             };
         }
-        // Update config
         setWordPressConfig({ siteUrl, username, password, appPassword });
-        // Test authentication
         const authResult = await testAuthentication();
-        // Type-safe success check
         if (!authResult.success || !authResult.userInfo) {
             return {
                 content: [{
@@ -54,7 +49,6 @@ server.tool("authenticate-wp", "Connect to a WordPress site with credentials", {
                 isError: true
             };
         }
-        // Safe role formatting
         const roles = authResult.userInfo.roles.join(', ') || 'no roles assigned';
         return {
             content: [{
@@ -93,16 +87,11 @@ server.tool("test-wp-connection", "Test if a WordPress site is reachable", {
 // ============================================
 // REGISTER MODULAR TOOL SETS
 // ============================================
-// Register all post-related tools
 registerPostTools(server);
-// Register media-related tools
 registerMediaTools(server);
-// Register Taxonomy tools
 registerTaxonomyTools(server);
-// Register user and role management tools
 registerUserTools(server);
-// Register system and security tools
-registerSystemTools(server);
+// registerSystemTools(server);
 // ============================================
 // SERVER STARTUP
 // ============================================

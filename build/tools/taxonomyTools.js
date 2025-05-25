@@ -1,17 +1,5 @@
 import { z } from "zod";
-import { getCategories, getTags,
-// TODO: Add these imports as you implement the functions in wordpress/api.js
-// createCategory,
-// createTag,
-// updateCategory,
-// updateTag,
-// deleteCategory,
-// deleteTag,
-// mergeCategories,
-// assignCategoriesToPosts,
-// assignTagsToPosts,
-// listTaxonomies
- } from "../wordpress/api.js";
+import { getCategories, getTags, createCategory, createTag, updateCategory, updateTag, deleteCategory, deleteTag, mergeCategories, assignCategoriesToPosts, assignTagsToPosts, listTaxonomies } from "../wordpress/api.js";
 /**
  * Register all taxonomy-related tools with the MCP server
  */
@@ -95,7 +83,7 @@ export function registerTaxonomyTools(server) {
     }, async ({ name, slug, description, parent }) => {
         try {
             // TODO: Implement createCategory in wordpress/api.js
-            // const result = await createCategory({ name, slug, description, parent });
+            const result = await createCategory({ name, slug, description, parent });
             return {
                 content: [{
                         type: "text",
@@ -124,7 +112,7 @@ export function registerTaxonomyTools(server) {
     }, async ({ name, slug, description }) => {
         try {
             // TODO: Implement createTag in wordpress/api.js
-            // const result = await createTag({ name, slug, description });
+            const result = await createTag({ name, slug, description });
             return {
                 content: [{
                         type: "text",
@@ -155,7 +143,7 @@ export function registerTaxonomyTools(server) {
     }, async ({ categoryId, name, slug, description, parent }) => {
         try {
             // TODO: Implement updateCategory in wordpress/api.js
-            // const result = await updateCategory(categoryId, { name, slug, description, parent });
+            const result = await updateCategory(categoryId, { name, slug, description, parent });
             return {
                 content: [{
                         type: "text",
@@ -185,7 +173,7 @@ export function registerTaxonomyTools(server) {
     }, async ({ tagId, name, slug, description }) => {
         try {
             // TODO: Implement updateTag in wordpress/api.js
-            // const result = await updateTag(tagId, { name, slug, description });
+            const result = await updateTag(tagId, { name, slug, description });
             return {
                 content: [{
                         type: "text",
@@ -213,7 +201,7 @@ export function registerTaxonomyTools(server) {
     }, async ({ categoryId, force }) => {
         try {
             // TODO: Implement deleteCategory in wordpress/api.js
-            // const result = await deleteCategory(categoryId, force);
+            const result = await deleteCategory(categoryId, force);
             return {
                 content: [{
                         type: "text",
@@ -241,7 +229,7 @@ export function registerTaxonomyTools(server) {
     }, async ({ tagId, force }) => {
         try {
             // TODO: Implement deleteTag in wordpress/api.js
-            // const result = await deleteTag(tagId, force);
+            const result = await deleteTag(tagId, force);
             return {
                 content: [{
                         type: "text",
@@ -279,7 +267,7 @@ export function registerTaxonomyTools(server) {
                 };
             }
             // TODO: Implement mergeCategories in wordpress/api.js
-            // const result = await mergeCategories(sourceCategoryId, targetCategoryId, deleteSource);
+            const result = await mergeCategories(sourceCategoryId, targetCategoryId, deleteSource);
             return {
                 content: [{
                         type: "text",
@@ -326,7 +314,7 @@ export function registerTaxonomyTools(server) {
                 };
             }
             // TODO: Implement assignCategoriesToPosts in wordpress/api.js
-            // const result = await assignCategoriesToPosts(postIds, categoryIds, replaceExisting);
+            const result = await assignCategoriesToPosts(postIds, categoryIds, replaceExisting);
             return {
                 content: [{
                         type: "text",
@@ -373,7 +361,7 @@ export function registerTaxonomyTools(server) {
                 };
             }
             // TODO: Implement assignTagsToPosts in wordpress/api.js
-            // const result = await assignTagsToPosts(postIds, tagIds, replaceExisting);
+            const result = await assignTagsToPosts(postIds, tagIds, replaceExisting);
             return {
                 content: [{
                         type: "text",
@@ -400,7 +388,7 @@ export function registerTaxonomyTools(server) {
     }, async ({ type }) => {
         try {
             // TODO: Implement listTaxonomies in wordpress/api.js
-            // const result = await listTaxonomies(type);
+            const result = await listTaxonomies(type);
             return {
                 content: [{
                         type: "text",

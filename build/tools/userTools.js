@@ -1,4 +1,6 @@
 import { z } from "zod";
+// TODO: Add these imports as you implement the functions in wordpress/api.js
+import { createUser, updateUser, disableUser, resetUserPassword, setUserRole, listUserRoles } from "../wordpress/api.js";
 /**
  * Register all user and role management tools with the MCP server
  */
@@ -52,18 +54,18 @@ export function registerUserTools(server) {
     }, async ({ username, email, password, firstName, lastName, displayName, role, bio, website, sendNotification }) => {
         try {
             // TODO: Implement createUser in wordpress/api.js
-            // const result = await createUser({
-            //   username,
-            //   email, 
-            //   password,
-            //   firstName,
-            //   lastName,
-            //   displayName: displayName || username,
-            //   role,
-            //   bio,
-            //   website,
-            //   sendNotification
-            // });
+            const result = await createUser({
+                username,
+                email,
+                password,
+                firstName,
+                lastName,
+                displayName: displayName || username,
+                role,
+                bio,
+                website,
+                sendNotification
+            });
             return {
                 content: [{
                         type: "text",
@@ -97,15 +99,15 @@ export function registerUserTools(server) {
     }, async ({ userId, email, firstName, lastName, displayName, bio, website, password }) => {
         try {
             // TODO: Implement updateUser in wordpress/api.js
-            // const result = await updateUser(userId, {
-            //   email,
-            //   firstName,
-            //   lastName,
-            //   displayName,
-            //   bio,
-            //   website,
-            //   password
-            // });
+            const result = await updateUser(userId, {
+                email,
+                firstName,
+                lastName,
+                displayName,
+                bio,
+                website,
+                password
+            });
             return {
                 content: [{
                         type: "text",
@@ -133,7 +135,7 @@ export function registerUserTools(server) {
     }, async ({ userId, reason }) => {
         try {
             // TODO: Implement disableUser in wordpress/api.js
-            // const result = await disableUser(userId, reason);
+            const result = await disableUser(userId, reason);
             return {
                 content: [{
                         type: "text",
@@ -171,7 +173,7 @@ export function registerUserTools(server) {
                 };
             }
             // TODO: Implement resetUserPassword in wordpress/api.js
-            // const result = await resetUserPassword({ userId, email, sendEmail });
+            const result = await resetUserPassword({ userId, email, sendEmail });
             return {
                 content: [{
                         type: "text",
@@ -205,7 +207,7 @@ export function registerUserTools(server) {
                 console.warn(`Warning: '${role}' is not a standard WordPress role. Proceeding anyway...`);
             }
             // TODO: Implement setUserRole in wordpress/api.js
-            // const result = await setUserRole(userId, role, removeOtherRoles);
+            const result = await setUserRole(userId, role, removeOtherRoles);
             return {
                 content: [{
                         type: "text",
@@ -232,7 +234,7 @@ export function registerUserTools(server) {
     }, async ({ includeCapabilities }) => {
         try {
             // TODO: Implement listUserRoles in wordpress/api.js
-            // const result = await listUserRoles(includeCapabilities);
+            const result = await listUserRoles(includeCapabilities);
             return {
                 content: [{
                         type: "text",
