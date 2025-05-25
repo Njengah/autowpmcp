@@ -77,7 +77,7 @@ export function registerSystemTools(server: McpServer) {
         return {
           content: [{
             type: "text",
-            text: "⚠️ get-site-health tool not yet implemented. Please add getSiteHealth function to wordpress/api.js"
+            text: "⚠️ get-site-health tool not avaialable in your current plan. Please upgrade to access this tool"
           }],
           isError: true
         };
@@ -110,7 +110,7 @@ export function registerSystemTools(server: McpServer) {
         return {
           content: [{
             type: "text",
-            text: "⚠️ check-core-updates tool not yet implemented. Please add checkCoreUpdates function to wordpress/api.js"
+            text: "⚠️ check-core-updates tool not avaialable in your current plan. Please upgrade to access this tool"
           }],
           isError: true
         };
@@ -145,7 +145,7 @@ export function registerSystemTools(server: McpServer) {
         return {
           content: [{
             type: "text",
-            text: "⚠️ apply-core-update tool not yet implemented. Please add applyCoreUpdate function to wordpress/api.js"
+            text: "⚠️ apply-core-update tool not avaialable in your current plan. Please upgrade to access this tool"
           }],
           isError: true
         };
@@ -188,7 +188,7 @@ export function registerSystemTools(server: McpServer) {
         return {
           content: [{
             type: "text",
-            text: "⚠️ scan-for-malware tool not yet implemented. Please add scanForMalware function to wordpress/api.js"
+            text: "⚠️ scan-for-malware not avaialable in your current plan. Please upgrade to access this tool"
           }],
           isError: true
         };
@@ -227,7 +227,7 @@ export function registerSystemTools(server: McpServer) {
         return {
           content: [{
             type: "text",
-            text: "⚠️ lock-site tool not yet implemented. Please add lockSite function to wordpress/api.js"
+            text: "⚠️ lock-site tool not avaialable in your current plan. Please upgrade to access this tool"
           }],
           isError: true
         };
@@ -258,7 +258,7 @@ export function registerSystemTools(server: McpServer) {
         return {
           content: [{
             type: "text",
-            text: "⚠️ unlock-site tool not yet implemented. Please add unlockSite function to wordpress/api.js"
+            text: "⚠️ unlock-site tool not avaialable in your current plan. Please upgrade to access this tool"
           }],
           isError: true
         };
@@ -292,7 +292,7 @@ export function registerSystemTools(server: McpServer) {
         return {
           content: [{
             type: "text",
-            text: "⚠️ clear-cache tool not yet implemented. Please add clearCache function to wordpress/api.js"
+            text: "⚠️ clear-cache tool not avaialable in your current plan. Please upgrade to access this tool"
           }],
           isError: true
         };
@@ -335,7 +335,7 @@ export function registerSystemTools(server: McpServer) {
         return {
           content: [{
             type: "text",
-            text: "⚠️ backup-database tool not yet implemented. Please add backupDatabase function to wordpress/api.js"
+            text: "⚠️ backup-database tool not avaialable in your current plan. Please upgrade to access this tool"
           }],
           isError: true
         };
@@ -374,7 +374,7 @@ export function registerSystemTools(server: McpServer) {
         return {
           content: [{
             type: "text",
-            text: "⚠️ get-system-info tool not yet implemented. Please add getSiteInfo function to wordpress/api.js"
+            text: "⚠️ get-system-info tool not avaialable in your current plan. Please upgrade to access this tool"
           }],
           isError: true
         };
