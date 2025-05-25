@@ -66,6 +66,40 @@ interface WPUserResponse {
   slug?: string;
 }
 
+interface WPAPIResponse {
+  namespaces?: string[];
+  
+}
+
+// export async function testAuthentication(): Promise<{ 
+//   success: boolean; 
+//   userInfo?: { id: number; name: string; roles: string[] };
+//   error?: string 
+// }> {
+//   try {
+//     const authHeader = await getAuthHeader();
+//     const response = await axios.get<WPUserResponse>(
+//       `${wpConfig.siteUrl}/wp-json/wp/v2/users/me`,
+//       { headers: { 'Authorization': authHeader } }
+//     );
+//     const roles = response.data.roles || ['contributor'];
+    
+//     return {
+//       success: true,
+//       userInfo: {
+//         id: response.data.id,
+//         name: response.data.name || response.data.slug || 'Unknown',
+//         roles: Array.isArray(roles) ? roles : [String(roles)]
+//       }
+//     };
+//   } catch (error) {
+//     return {
+//       success: false,
+//       error: error instanceof Error ? error.message : 'Unknown error'
+//     };
+//   }
+// }
+
 export async function testAuthentication(): Promise<{ 
   success: boolean; 
   userInfo?: { id: number; name: string; roles: string[] };
@@ -79,6 +113,9 @@ export async function testAuthentication(): Promise<{
     );
     const roles = response.data.roles || ['contributor'];
     
+    // SET AUTHENTICATION FLAG TO TRUE
+    wpConfig.isAuthenticated = true;
+    
     return {
       success: true,
       userInfo: {
@@ -88,6 +125,8 @@ export async function testAuthentication(): Promise<{
       }
     };
   } catch (error) {
+    // ENSURE FLAG IS FALSE ON FAILURE
+    wpConfig.isAuthenticated = false;
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
@@ -95,10 +134,6 @@ export async function testAuthentication(): Promise<{
   }
 }
 
-interface WPAPIResponse {
-  namespaces?: string[];
-  
-}
 
 export async function testSiteConnection(siteUrl: string): Promise<boolean> {
   try {
