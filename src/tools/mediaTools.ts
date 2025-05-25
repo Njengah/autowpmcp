@@ -3,13 +3,15 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import { 
   // TODO: Add these imports as you implement the functions in wordpress/api.js
-  // uploadMedia,
-  // listMedia,
-  // searchMedia,
-  // editMediaMetadata,
-  // deleteMedia,
-  // setFeaturedImage,
-  // optimizeMedia
+    uploadMedia,
+    listMedia,
+    searchMedia,
+    editMediaMetadata,
+    deleteMedia,
+    setFeaturedImage,
+    optimizeMedia,
+    getMediaDetails,
+    bulkDeleteMedia
 } from "../wordpress/api.js";
 
 /**
@@ -31,7 +33,7 @@ export function registerMediaTools(server: McpServer) {
     async ({ source, title, caption, altText, description }) => {
       try {
         // TODO: Implement uploadMedia in wordpress/api.js
-        // const result = await uploadMedia(source, { title, caption, altText, description });
+         const result = await uploadMedia(source, { title, caption, altText, description });
         
         return {
           content: [{
@@ -70,7 +72,7 @@ export function registerMediaTools(server: McpServer) {
     async ({ page, perPage, mediaType, mimeType, orderBy, order, parent }) => {
       try {
         // TODO: Implement listMedia in wordpress/api.js
-        // const result = await listMedia({ page, perPage, mediaType, mimeType, orderBy, order, parent });
+         const result = await listMedia({ page, perPage, mediaType, mimeType, orderBy, order, parent });
         
         return {
           content: [{
@@ -106,7 +108,7 @@ export function registerMediaTools(server: McpServer) {
     async ({ query, mediaType, dateAfter, dateBefore, limit }) => {
       try {
         // TODO: Implement searchMedia in wordpress/api.js
-        // const result = await searchMedia({ query, mediaType, dateAfter, dateBefore, limit });
+        const result = await searchMedia({ query, mediaType, dateAfter, dateBefore, limit });
         
         return {
           content: [{
@@ -142,7 +144,7 @@ export function registerMediaTools(server: McpServer) {
     async ({ mediaId, title, caption, altText, description }) => {
       try {
         // TODO: Implement editMediaMetadata in wordpress/api.js
-        // const result = await editMediaMetadata(mediaId, { title, caption, altText, description });
+        const result = await editMediaMetadata(mediaId, { title, caption, altText, description });
         
         return {
           content: [{
@@ -175,7 +177,7 @@ export function registerMediaTools(server: McpServer) {
     async ({ mediaId, force }) => {
       try {
         // TODO: Implement deleteMedia in wordpress/api.js
-        // const result = await deleteMedia(mediaId, force);
+        const result = await deleteMedia(mediaId, force);
         
         return {
           content: [{
@@ -208,7 +210,7 @@ export function registerMediaTools(server: McpServer) {
     async ({ postId, mediaId }) => {
       try {
         // TODO: Implement setFeaturedImage in wordpress/api.js
-        // const result = await setFeaturedImage(postId, mediaId);
+         const result = await setFeaturedImage(postId, mediaId);
         
         return {
           content: [{
@@ -242,7 +244,7 @@ export function registerMediaTools(server: McpServer) {
     async ({ mediaId, quality, replaceOriginal }) => {
       try {
         // TODO: Implement optimizeMedia in wordpress/api.js
-        // const result = await optimizeMedia(mediaId, { quality, replaceOriginal });
+        const result = await optimizeMedia(mediaId, { quality, replaceOriginal });
         
         return {
           content: [{
@@ -274,7 +276,7 @@ export function registerMediaTools(server: McpServer) {
     async ({ mediaId }) => {
       try {
         // TODO: Implement getMediaDetails in wordpress/api.js
-        // const result = await getMediaDetails(mediaId);
+         const result = await getMediaDetails(mediaId);
         
         return {
           content: [{
@@ -317,7 +319,7 @@ export function registerMediaTools(server: McpServer) {
         }
 
         // TODO: Implement bulkDeleteMedia in wordpress/api.js
-        // const result = await bulkDeleteMedia(mediaIds, force);
+        const result = await bulkDeleteMedia(mediaIds, force);
         
         return {
           content: [{

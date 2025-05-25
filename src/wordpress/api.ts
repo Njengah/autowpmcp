@@ -1,6 +1,10 @@
 // WordPress API utilities
 import axios from 'axios';
 import { z } from 'zod';
+import FormData from 'form-data';
+import fs from 'fs';
+import path from 'path';
+import tinify from 'tinify';
 
 export interface WordPressConfig {
   siteUrl: string;
@@ -162,6 +166,69 @@ interface UpdateUserData {
   bio?: string;
   website?: string;
   password?: string;
+}
+
+
+interface WPMediaResponse {
+  id: number;
+  title: { rendered: string };
+  caption: { rendered: string };
+  alt_text: string;
+  description: { rendered: string };
+  media_type: string;
+  mime_type: string;
+  source_url: string;
+  media_details: {
+    width: number;
+    height: number;
+    file: string;
+    filesize: number;
+  };
+  date: string;
+  link: string;
+  slug: string;
+}
+
+interface WPMedia {
+  id: number;
+  title: string;
+  caption: string;
+  altText: string;
+  description: string;
+  mediaType: string;
+  mimeType: string;
+  sourceUrl: string;
+  width?: number;
+  height?: number;
+  filesize?: number;
+  date: string;
+  link: string;
+  slug: string;
+}
+
+interface MediaUploadOptions {
+  title?: string;
+  caption?: string;
+  altText?: string;
+  description?: string;
+}
+
+interface MediaListOptions {
+  page?: number;
+  perPage?: number;
+  mediaType?: string;
+  mimeType?: string;
+  orderBy?: string;
+  order?: string;
+  parent?: number;
+}
+
+interface MediaSearchOptions {
+  query: string;
+  mediaType?: string;
+  dateAfter?: string;
+  dateBefore?: string;
+  limit?: number;
 }
 
 
@@ -1220,4 +1287,395 @@ export async function listUserRoles(includeCapabilities: boolean = false): Promi
       error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
     };
   }
+}
+
+
+
+
+// Media Tools  
+export async function uploadMedia(
+  source: string,
+  options: MediaUploadOptions = {}
+): Promise<{ success: boolean; media?: WPMedia; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const formData = new FormData();
+
+    if (source.startsWith('http')) {
+      const response = await axios.get(source, { responseType: 'stream' });
+      formData.append('file', response.data, path.basename(source));
+    } else {
+      formData.append('file', fs.createReadStream(source), path.basename(source));
+    }
+
+    if (options.title) formData.append('title', options.title);
+    if (options.caption) formData.append('caption', options.caption);
+    if (options.altText) formData.append('alt_text', options.altText);
+    if (options.description) formData.append('description', options.description);
+
+    const response = await axios.post<WPMediaResponse>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/media`,
+      formData,
+      {
+        headers: {
+          'Authorization': authHeader,
+          ...formData.getHeaders()
+        }
+      }
+    );
+
+    return {
+      success: true,
+      media: {
+        id: response.data.id,
+        title: response.data.title.rendered,
+        caption: response.data.caption.rendered,
+        altText: response.data.alt_text,
+        description: response.data.description.rendered,
+        mediaType: response.data.media_type,
+        mimeType: response.data.mime_type,
+        sourceUrl: response.data.source_url,
+        width: response.data.media_details?.width,
+        height: response.data.media_details?.height,
+        filesize: response.data.media_details?.filesize,
+        date: response.data.date,
+        link: response.data.link,
+        slug: response.data.slug
+      }
+    };
+  } catch (error: unknown) {
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function listMedia(
+  options: MediaListOptions = {}
+): Promise<{ success: boolean; media?: WPMedia[]; totalPages?: number; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const params = new URLSearchParams();
+    
+    if (options.page) params.append('page', options.page.toString());
+    if (options.perPage) params.append('per_page', options.perPage.toString());
+    if (options.mediaType && options.mediaType !== 'any') params.append('media_type', options.mediaType);
+    if (options.mimeType) params.append('mime_type', options.mimeType);
+    if (options.orderBy) params.append('orderby', options.orderBy);
+    if (options.order) params.append('order', options.order);
+    if (options.parent) params.append('parent', options.parent.toString());
+
+    const response = await axios.get<WPMediaResponse[]>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/media?${params.toString()}`,
+      { headers: { 'Authorization': authHeader } }
+    );
+
+    const totalPages = parseInt(response.headers['x-wp-totalpages'] || '1');
+
+    return {
+      success: true,
+      media: response.data.map(item => ({
+        id: item.id,
+        title: item.title.rendered,
+        caption: item.caption.rendered,
+        altText: item.alt_text,
+        description: item.description.rendered,
+        mediaType: item.media_type,
+        mimeType: item.mime_type,
+        sourceUrl: item.source_url,
+        width: item.media_details?.width,
+        height: item.media_details?.height,
+        filesize: item.media_details?.filesize,
+        date: item.date,
+        link: item.link,
+        slug: item.slug
+      })),
+      totalPages
+    };
+  } catch (error: unknown) {
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function searchMedia(
+  options: MediaSearchOptions
+): Promise<{ success: boolean; media?: WPMedia[]; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const params = new URLSearchParams();
+    
+    params.append('search', options.query);
+    if (options.mediaType && options.mediaType !== 'any') params.append('media_type', options.mediaType);
+    if (options.dateAfter) params.append('after', options.dateAfter);
+    if (options.dateBefore) params.append('before', options.dateBefore);
+    if (options.limit) params.append('per_page', options.limit.toString());
+
+    const response = await axios.get<WPMediaResponse[]>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/media?${params.toString()}`,
+      { headers: { 'Authorization': authHeader } }
+    );
+
+    return {
+      success: true,
+      media: response.data.map(item => ({
+        id: item.id,
+        title: item.title.rendered,
+        caption: item.caption.rendered,
+        altText: item.alt_text,
+        description: item.description.rendered,
+        mediaType: item.media_type,
+        mimeType: item.mime_type,
+        sourceUrl: item.source_url,
+        width: item.media_details?.width,
+        height: item.media_details?.height,
+        filesize: item.media_details?.filesize,
+        date: item.date,
+        link: item.link,
+        slug: item.slug
+      }))
+    };
+  } catch (error: unknown) {
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function editMediaMetadata(
+  mediaId: number,
+  metadata: { title?: string; caption?: string; altText?: string; description?: string }
+): Promise<{ success: boolean; media?: WPMedia; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const updateData: any = {};
+    
+    if (metadata.title) updateData.title = metadata.title;
+    if (metadata.caption) updateData.caption = metadata.caption;
+    if (metadata.altText) updateData.alt_text = metadata.altText;
+    if (metadata.description) updateData.description = metadata.description;
+
+    const response = await axios.post<WPMediaResponse>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/media/${mediaId}`,
+      updateData,
+      {
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    return {
+      success: true,
+      media: {
+        id: response.data.id,
+        title: response.data.title.rendered,
+        caption: response.data.caption.rendered,
+        altText: response.data.alt_text,
+        description: response.data.description.rendered,
+        mediaType: response.data.media_type,
+        mimeType: response.data.mime_type,
+        sourceUrl: response.data.source_url,
+        width: response.data.media_details?.width,
+        height: response.data.media_details?.height,
+        filesize: response.data.media_details?.filesize,
+        date: response.data.date,
+        link: response.data.link,
+        slug: response.data.slug
+      }
+    };
+  } catch (error: unknown) {
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function deleteMedia(
+  mediaId: number,
+  force: boolean = true
+): Promise<{ success: boolean; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const params = new URLSearchParams();
+    if (force) params.append('force', 'true');
+
+    await axios.delete(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/media/${mediaId}?${params.toString()}`,
+      { headers: { 'Authorization': authHeader } }
+    );
+
+    return { success: true };
+  } catch (error: unknown) {
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function setFeaturedImage(
+  postId: number,
+  mediaId: number
+): Promise<{ success: boolean; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    
+    await axios.post(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/posts/${postId}`,
+      { featured_media: mediaId },
+      {
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    return { success: true };
+  } catch (error: unknown) {
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function getMediaDetails(
+  mediaId: number
+): Promise<{ success: boolean; media?: WPMedia; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const response = await axios.get<WPMediaResponse>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/media/${mediaId}`,
+      { headers: { 'Authorization': authHeader } }
+    );
+
+    return {
+      success: true,
+      media: {
+        id: response.data.id,
+        title: response.data.title.rendered,
+        caption: response.data.caption.rendered,
+        altText: response.data.alt_text,
+        description: response.data.description.rendered,
+        mediaType: response.data.media_type,
+        mimeType: response.data.mime_type,
+        sourceUrl: response.data.source_url,
+        width: response.data.media_details?.width,
+        height: response.data.media_details?.height,
+        filesize: response.data.media_details?.filesize,
+        date: response.data.date,
+        link: response.data.link,
+        slug: response.data.slug
+      }
+    };
+  } catch (error: unknown) {
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function bulkDeleteMedia(
+  mediaIds: number[],
+  force: boolean = true
+): Promise<{ success: boolean; deleted: number[]; failed: number[]; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const deleted: number[] = [];
+    const failed: number[] = [];
+
+    for (const mediaId of mediaIds) {
+      const result = await deleteMedia(mediaId, force);
+      if (result.success) {
+        deleted.push(mediaId);
+      } else {
+        failed.push(mediaId);
+      }
+    }
+
+    return {
+      success: true,
+      deleted,
+      failed
+    };
+  } catch (error: unknown) {
+    return {
+      success: false,
+      deleted: [],
+      failed: mediaIds,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function optimizeMedia(
+ mediaId: number,
+ options: { quality?: number; replaceOriginal?: boolean } = {}
+): Promise<{ success: boolean; media?: WPMedia; error?: any }> {
+ try {
+   if (!process.env.TINIFY_API_KEY) throw new Error('TinyPNG API key not configured');
+   if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+   if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+   tinify.key = process.env.TINIFY_API_KEY;
+   
+   const mediaDetails = await getMediaDetails(mediaId);
+   if (!mediaDetails.success || !mediaDetails.media) throw new Error('Media not found');
+
+   const imageResponse = await axios.get(mediaDetails.media.sourceUrl, { responseType: 'arraybuffer' });
+   const source = tinify.fromBuffer(Buffer.from(imageResponse.data as ArrayBuffer));
+   const resized = options.quality ? source.resize({ method: 'fit' }) : source;
+   const optimized = await resized.toBuffer();
+
+   if (options.replaceOriginal) {
+     const formData = new FormData();
+     formData.append('file', optimized, `optimized_${mediaDetails.media.slug}`);
+     
+     const authHeader = await getAuthHeader();
+     await axios.post(
+       `${wpConfig.siteUrl}/wp-json/wp/v2/media/${mediaId}`,
+       formData,
+       { headers: { 'Authorization': authHeader, ...formData.getHeaders() } }
+     );
+   }
+
+   return { success: true, media: mediaDetails.media };
+ } catch (error: unknown) {
+   return {
+     success: false,
+     error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+   };
+ }
 }
