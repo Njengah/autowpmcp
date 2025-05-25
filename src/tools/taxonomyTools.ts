@@ -6,16 +6,16 @@ import {
   getCategories,
   getTags,
   // TODO: Add these imports as you implement the functions in wordpress/api.js
-  // createCategory,
-  // createTag,
-  // updateCategory,
-  // updateTag,
-  // deleteCategory,
-  // deleteTag,
-  // mergeCategories,
-  // assignCategoriesToPosts,
-  // assignTagsToPosts,
-  // listTaxonomies
+   createCategory,
+   createTag,
+   updateCategory,
+   updateTag,
+   deleteCategory,
+   deleteTag,
+   mergeCategories,
+   assignCategoriesToPosts,
+   assignTagsToPosts,
+   listTaxonomies
 } from "../wordpress/api.js";
 
 interface WPCategory {
@@ -134,7 +134,7 @@ export function registerTaxonomyTools(server: McpServer) {
     async ({ name, slug, description, parent }) => {
       try {
         // TODO: Implement createCategory in wordpress/api.js
-        // const result = await createCategory({ name, slug, description, parent });
+        const result = await createCategory({ name, slug, description, parent });
         
         return {
           content: [{
@@ -169,7 +169,7 @@ export function registerTaxonomyTools(server: McpServer) {
     async ({ name, slug, description }) => {
       try {
         // TODO: Implement createTag in wordpress/api.js
-        // const result = await createTag({ name, slug, description });
+         const result = await createTag({ name, slug, description });
         
         return {
           content: [{
@@ -206,7 +206,7 @@ export function registerTaxonomyTools(server: McpServer) {
     async ({ categoryId, name, slug, description, parent }) => {
       try {
         // TODO: Implement updateCategory in wordpress/api.js
-        // const result = await updateCategory(categoryId, { name, slug, description, parent });
+         const result = await updateCategory(categoryId, { name, slug, description, parent });
         
         return {
           content: [{
@@ -242,7 +242,7 @@ export function registerTaxonomyTools(server: McpServer) {
     async ({ tagId, name, slug, description }) => {
       try {
         // TODO: Implement updateTag in wordpress/api.js
-        // const result = await updateTag(tagId, { name, slug, description });
+        const result = await updateTag(tagId, { name, slug, description });
         
         return {
           content: [{
@@ -276,7 +276,7 @@ export function registerTaxonomyTools(server: McpServer) {
     async ({ categoryId, force }) => {
       try {
         // TODO: Implement deleteCategory in wordpress/api.js
-        // const result = await deleteCategory(categoryId, force);
+         const result = await deleteCategory(categoryId, force);
         
         return {
           content: [{
@@ -310,7 +310,7 @@ export function registerTaxonomyTools(server: McpServer) {
     async ({ tagId, force }) => {
       try {
         // TODO: Implement deleteTag in wordpress/api.js
-        // const result = await deleteTag(tagId, force);
+         const result = await deleteTag(tagId, force);
         
         return {
           content: [{
@@ -355,7 +355,7 @@ export function registerTaxonomyTools(server: McpServer) {
         }
 
         // TODO: Implement mergeCategories in wordpress/api.js
-        // const result = await mergeCategories(sourceCategoryId, targetCategoryId, deleteSource);
+        const result = await mergeCategories(sourceCategoryId, targetCategoryId, deleteSource);
         
         return {
           content: [{
@@ -410,7 +410,7 @@ export function registerTaxonomyTools(server: McpServer) {
         }
 
         // TODO: Implement assignCategoriesToPosts in wordpress/api.js
-        // const result = await assignCategoriesToPosts(postIds, categoryIds, replaceExisting);
+        const result = await assignCategoriesToPosts(postIds, categoryIds, replaceExisting);
         
         return {
           content: [{
@@ -465,7 +465,7 @@ export function registerTaxonomyTools(server: McpServer) {
         }
 
         // TODO: Implement assignTagsToPosts in wordpress/api.js
-        // const result = await assignTagsToPosts(postIds, tagIds, replaceExisting);
+        const result = await assignTagsToPosts(postIds, tagIds, replaceExisting);
         
         return {
           content: [{
@@ -498,7 +498,7 @@ export function registerTaxonomyTools(server: McpServer) {
     async ({ type }) => {
       try {
         // TODO: Implement listTaxonomies in wordpress/api.js
-        // const result = await listTaxonomies(type);
+        const result = await listTaxonomies(type);
         
         return {
           content: [{

@@ -44,18 +44,19 @@ interface WPPostResponse {
   status: string;
 }
 
-interface WPPostDetailed {
+
+interface WPCategory {
   id: number;
-  title: string;
-  content: string;
-  excerpt: string;
-  status: string;
-  link: string;
-  date: string;
-  modified: string;
-  categories: number[];
-  tags: number[];
-  author: number;
+  name: string;
+  slug: string;
+  count: number;
+}
+
+interface WPTag {
+  id: number;
+  name: string;
+  slug: string;
+  count: number;
 }
 
 interface WPPostSummary {
@@ -83,11 +84,33 @@ interface ListPostsOptions {
   order?: string;
 }
 
+interface WPPostDetailed {
+  id: number;
+  title: string;
+  content: string;
+  excerpt: string;
+  status: string;
+  link: string;
+  date: string;
+  modified: string;
+  categories: number[];
+  tags: number[];
+  author: number;
+}
+
 interface WPDeleteResponse {
   deleted: boolean;
   previous: any;
 }
 
+interface WPTaxonomy {
+  name: string;
+  label: string;
+  description: string;
+  public: boolean;
+  hierarchical: boolean;
+  rest_base: string;
+}
 
 
 export function setWordPressConfig(config: Partial<WordPressConfig>): void {
@@ -211,13 +234,6 @@ export async function createPost(
   }
 }
 
-interface WPCategory {
-  id: number;
-  name: string;
-  slug: string;
-  count: number;
-}
-
 export async function getCategories(): Promise<{
   success: boolean;
   categories?: WPCategory[];
@@ -249,13 +265,6 @@ export async function getCategories(): Promise<{
       error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
     };
   }
-}
-
-interface WPTag {
-  id: number;
-  name: string;
-  slug: string;
-  count: number;
 }
 
 export async function getTags(): Promise<{
@@ -371,20 +380,6 @@ export async function deletePost(
   }
 }
 
-interface WPPostDetailed {
-  id: number;
-  title: string;
-  content: string;
-  excerpt: string;
-  status: string;
-  link: string;
-  date: string;
-  modified: string;
-  categories: number[];
-  tags: number[];
-  author: number;
-}
-
 export async function getPost(
   postId: number, 
   includeRevisions: boolean = false
@@ -438,31 +433,6 @@ export async function getPost(
   }
 }
 
-interface WPPostSummary {
-  id: number;
-  title: string;
-  excerpt: string;
-  status: string;
-  link: string;
-  date: string;
-  modified: string;
-  categories: number[];
-  tags: number[];
-  author: number;
-}
-
-interface ListPostsOptions {
-  page?: number;
-  perPage?: number;
-  status?: string;
-  author?: number;
-  categories?: number[];
-  tags?: number[];
-  search?: string;
-  orderBy?: string;
-  order?: string;
-}
-
 export async function listPosts(
   options: ListPostsOptions = {}
 ): Promise<{ success: boolean; posts?: WPPostSummary[]; totalPages?: number; totalPosts?: number; error?: any }> {
@@ -507,6 +477,369 @@ export async function listPosts(
     };
   } catch (error: unknown) {
     console.error('Error listing posts:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+// New taxonomy management methods
+
+export async function createCategory(data: {
+  name: string;
+  slug?: string;
+  description?: string;
+  parent?: number;
+}): Promise<{ success: boolean; category?: WPCategory; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const response = await axios.post<WPCategory>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/categories`,
+      data,
+      { headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' } }
+    );
+
+    return {
+      success: true,
+      category: response.data
+    };
+  } catch (error: unknown) {
+    console.error('Error creating category:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function createTag(data: {
+  name: string;
+  slug?: string;
+  description?: string;
+}): Promise<{ success: boolean; tag?: WPTag; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const response = await axios.post<WPTag>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/tags`,
+      data,
+      { headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' } }
+    );
+
+    return {
+      success: true,
+      tag: response.data
+    };
+  } catch (error: unknown) {
+    console.error('Error creating tag:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function updateCategory(
+  categoryId: number,
+  updates: {
+    name?: string;
+    slug?: string;
+    description?: string;
+    parent?: number;
+  }
+): Promise<{ success: boolean; category?: WPCategory; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const response = await axios.put<WPCategory>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/categories/${categoryId}`,
+      updates,
+      { headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' } }
+    );
+
+    return {
+      success: true,
+      category: response.data
+    };
+  } catch (error: unknown) {
+    console.error('Error updating category:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function updateTag(
+  tagId: number,
+  updates: {
+    name?: string;
+    slug?: string;
+    description?: string;
+  }
+): Promise<{ success: boolean; tag?: WPTag; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const response = await axios.put<WPTag>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/tags/${tagId}`,
+      updates,
+      { headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' } }
+    );
+
+    return {
+      success: true,
+      tag: response.data
+    };
+  } catch (error: unknown) {
+    console.error('Error updating tag:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function deleteCategory(
+  categoryId: number,
+  force: boolean = false
+): Promise<{ success: boolean; deleted?: boolean; previous?: any; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const url = `${wpConfig.siteUrl}/wp-json/wp/v2/categories/${categoryId}${force ? '?force=true' : ''}`;
+
+    const response = await axios.delete<WPDeleteResponse>(url, {
+      headers: { 'Authorization': authHeader }
+    });
+
+    return {
+      success: true,
+      deleted: response.data.deleted || false,
+      previous: response.data.previous
+    };
+  } catch (error: unknown) {
+    console.error('Error deleting category:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function deleteTag(
+  tagId: number,
+  force: boolean = false
+): Promise<{ success: boolean; deleted?: boolean; previous?: any; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const url = `${wpConfig.siteUrl}/wp-json/wp/v2/tags/${tagId}${force ? '?force=true' : ''}`;
+
+    const response = await axios.delete<WPDeleteResponse>(url, {
+      headers: { 'Authorization': authHeader }
+    });
+
+    return {
+      success: true,
+      deleted: response.data.deleted || false,
+      previous: response.data.previous
+    };
+  } catch (error: unknown) {
+    console.error('Error deleting tag:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function mergeCategories(
+  sourceCategoryId: number,
+  targetCategoryId: number,
+  deleteSource: boolean = true
+): Promise<{ success: boolean; mergedPosts?: number; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    
+    // Get posts from source category
+    const postsResponse = await axios.get<any[]>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/posts?categories=${sourceCategoryId}&per_page=100`,
+      { headers: { 'Authorization': authHeader } }
+    );
+
+    let mergedCount = 0;
+    
+    // Update each post to use target category
+    for (const post of postsResponse.data) {
+      const currentCategories = post.categories.filter((id: number) => id !== sourceCategoryId);
+      if (!currentCategories.includes(targetCategoryId)) {
+        currentCategories.push(targetCategoryId);
+      }
+
+      await axios.put(
+        `${wpConfig.siteUrl}/wp-json/wp/v2/posts/${post.id}`,
+        { categories: currentCategories },
+        { headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' } }
+      );
+      mergedCount++;
+    }
+
+    // Delete source category if requested
+    if (deleteSource) {
+      await deleteCategory(sourceCategoryId, true);
+    }
+
+    return {
+      success: true,
+      mergedPosts: mergedCount
+    };
+  } catch (error: unknown) {
+    console.error('Error merging categories:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function assignCategoriesToPosts(
+  postIds: number[],
+  categoryIds: number[],
+  replaceExisting: boolean = false
+): Promise<{ success: boolean; updatedPosts?: number; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    let updatedCount = 0;
+
+    for (const postId of postIds) {
+      let categories = categoryIds;
+      
+      if (!replaceExisting) {
+        // Get current categories and merge
+        const postResponse = await axios.get<any>(
+          `${wpConfig.siteUrl}/wp-json/wp/v2/posts/${postId}`,
+          { headers: { 'Authorization': authHeader } }
+        );
+        const currentCategories = postResponse.data.categories || [];
+        categories = [...new Set([...currentCategories, ...categoryIds])];
+      }
+
+      await axios.put(
+        `${wpConfig.siteUrl}/wp-json/wp/v2/posts/${postId}`,
+        { categories },
+        { headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' } }
+      );
+      updatedCount++;
+    }
+
+    return {
+      success: true,
+      updatedPosts: updatedCount
+    };
+  } catch (error: unknown) {
+    console.error('Error assigning categories to posts:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function assignTagsToPosts(
+  postIds: number[],
+  tagIds: number[],
+  replaceExisting: boolean = false
+): Promise<{ success: boolean; updatedPosts?: number; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    let updatedCount = 0;
+
+    for (const postId of postIds) {
+      let tags = tagIds;
+      
+      if (!replaceExisting) {
+        // Get current tags and merge
+        const postResponse = await axios.get<any>(
+          `${wpConfig.siteUrl}/wp-json/wp/v2/posts/${postId}`,
+          { headers: { 'Authorization': authHeader } }
+        );
+        const currentTags = postResponse.data.tags || [];
+        tags = [...new Set([...currentTags, ...tagIds])];
+      }
+
+      await axios.put(
+        `${wpConfig.siteUrl}/wp-json/wp/v2/posts/${postId}`,
+        { tags },
+        { headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' } }
+      );
+      updatedCount++;
+    }
+
+    return {
+      success: true,
+      updatedPosts: updatedCount
+    };
+  } catch (error: unknown) {
+    console.error('Error assigning tags to posts:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+
+export async function listTaxonomies(
+  type: "all" | "builtin" | "custom" = "all"
+): Promise<{ success: boolean; taxonomies?: WPTaxonomy[]; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const response = await axios.get<Record<string, WPTaxonomy>>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/taxonomies`,
+      { headers: { 'Authorization': authHeader } }
+    );
+
+    let taxonomies = Object.values(response.data);
+    
+    if (type === "builtin") {
+      taxonomies = taxonomies.filter(tax => ['category', 'post_tag'].includes(tax.name));
+    } else if (type === "custom") {
+      taxonomies = taxonomies.filter(tax => !['category', 'post_tag'].includes(tax.name));
+    }
+
+    return {
+      success: true,
+      taxonomies
+    };
+  } catch (error: unknown) {
+    console.error('Error listing taxonomies:', error);
     return {
       success: false,
       error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
