@@ -13,24 +13,10 @@ import { z } from "zod";
     listUserRoles
   } from "../wordpress/api.js";
 
-// Interface definitions for type safety
-interface WPUser {
-  id: number;
-  username: string;
-  name: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  roles: string[];
-  registered_date: string;
-  capabilities: Record<string, boolean>;
-}
-
-interface WPRole {
-  name: string;
-  display_name: string;
-  capabilities: Record<string, boolean>;
-}
+import {
+  WPUser,
+  WPRole,
+} from '../types/interfaces.js';
 
 /**
  * Register all user and role management tools with the MCP server

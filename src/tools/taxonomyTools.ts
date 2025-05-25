@@ -3,9 +3,8 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
 import { 
-  getCategories,
-  getTags,
-  // TODO: Add these imports as you implement the functions in wordpress/api.js
+   getCategories,
+   getTags,
    createCategory,
    createTag,
    updateCategory,
@@ -18,19 +17,10 @@ import {
    listTaxonomies
 } from "../wordpress/api.js";
 
-interface WPCategory {
-  id: number;
-  name: string;
-  count: number;
-  slug?: string;
-}
-
-interface WPTag {
-  id: number;
-  name: string;
-  count: number;
-  slug?: string;
-}
+import {
+  WPCategory,
+  WPTag
+} from '../types/interfaces.js';
 
 /**
  * Register all taxonomy-related tools with the MCP server

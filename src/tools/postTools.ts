@@ -11,21 +11,6 @@ import {
 } from "../wordpress/api.js";
 import { saveDraft, loadDraft, truncateContent, formatPostContent } from '../utils/helpers.js';
 
-// Interface definitions for type safety
-interface WPCategory {
-  id: number;
-  name: string;
-  count: number;
-  slug?: string;
-}
-
-interface WPTag {
-  id: number;
-  name: string;
-  count: number;
-  slug?: string;
-}
-
 /**
  * Register all post-related tools with the MCP server
  */
@@ -481,7 +466,7 @@ export function registerPostTools(server: McpServer) {
         }
 
         // TODO: Implement bulkUpdatePosts in wordpress/api.js
-        // const result = await bulkUpdatePosts(postIds, updates);
+        //const result = await bulkUpdatePosts(postIds, updates);
         
         return {
           content: [{

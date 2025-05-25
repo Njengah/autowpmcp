@@ -6,6 +6,30 @@ import fs from 'fs';
 import path from 'path';
 import tinify from 'tinify';
 
+import {
+  WPUserResponse,
+  WPAPIResponse,
+  WPPost,
+  WPPostResponse,
+  WPCategory,
+  WPTag,
+  WPPostSummary,
+  ListPostsOptions,
+  WPPostDetailed,
+  WPDeleteResponse,
+  WPTaxonomy,
+  WPUser,
+  WPRole,
+  ListUsersOptions,
+  CreateUserData,
+  UpdateUserData,
+  WPMediaResponse,
+  WPMedia,
+  MediaUploadOptions,
+  MediaListOptions,
+  MediaSearchOptions
+} from '../types/interfaces.js';
+
 export interface WordPressConfig {
   siteUrl: string;
   username: string;
@@ -19,218 +43,7 @@ let wpConfig: WordPressConfig = {
   siteUrl: '',
   username: '',
   isAuthenticated: false
-};
-
-
-interface WPUserResponse {
-  id: number;
-  name: string;
-  roles?: string[]; 
-  slug?: string;
 }
-
-interface WPAPIResponse {
-  namespaces?: string[];
-  
-}
-
-interface WPPost {
-  id: number;
-  title: string;
-  link: string;
-  status: string;
-}
-
-interface WPPostResponse {
-  id: number;
-  title: { rendered: string };
-  link: string;
-  status: string;
-}
-
-
-interface WPCategory {
-  id: number;
-  name: string;
-  slug: string;
-  count: number;
-}
-
-interface WPTag {
-  id: number;
-  name: string;
-  slug: string;
-  count: number;
-}
-
-interface WPPostSummary {
-  id: number;
-  title: string;
-  excerpt: string;
-  status: string;
-  link: string;
-  date: string;
-  modified: string;
-  categories: number[];
-  tags: number[];
-  author: number;
-}
-
-interface ListPostsOptions {
-  page?: number;
-  perPage?: number;
-  status?: string;
-  author?: number;
-  categories?: number[];
-  tags?: number[];
-  search?: string;
-  orderBy?: string;
-  order?: string;
-}
-
-interface WPPostDetailed {
-  id: number;
-  title: string;
-  content: string;
-  excerpt: string;
-  status: string;
-  link: string;
-  date: string;
-  modified: string;
-  categories: number[];
-  tags: number[];
-  author: number;
-}
-
-interface WPDeleteResponse {
-  deleted: boolean;
-  previous: any;
-}
-
-interface WPTaxonomy {
-  name: string;
-  label: string;
-  description: string;
-  public: boolean;
-  hierarchical: boolean;
-  rest_base: string;
-}
-
-interface WPUser {
-  id: number;
-  username: string;
-  name: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  roles: string[];
-  registered_date: string;
-  capabilities: Record<string, boolean>;
-}
-
-interface WPRole {
-  name: string;
-  display_name: string;
-  capabilities: Record<string, boolean>;
-}
-
-interface ListUsersOptions {
-  page?: number;
-  perPage?: number;
-  role?: string;
-  search?: string;
-  orderBy?: string;
-  order?: string;
-  registeredAfter?: string;
-  registeredBefore?: string;
-}
-
-interface CreateUserData {
-  username: string;
-  email: string;
-  password: string;
-  firstName?: string;
-  lastName?: string;
-  displayName?: string;
-  role?: string;
-  bio?: string;
-  website?: string;
-  sendNotification?: boolean;
-}
-
-interface UpdateUserData {
-  email?: string;
-  firstName?: string;
-  lastName?: string;
-  displayName?: string;
-  bio?: string;
-  website?: string;
-  password?: string;
-}
-
-
-interface WPMediaResponse {
-  id: number;
-  title: { rendered: string };
-  caption: { rendered: string };
-  alt_text: string;
-  description: { rendered: string };
-  media_type: string;
-  mime_type: string;
-  source_url: string;
-  media_details: {
-    width: number;
-    height: number;
-    file: string;
-    filesize: number;
-  };
-  date: string;
-  link: string;
-  slug: string;
-}
-
-interface WPMedia {
-  id: number;
-  title: string;
-  caption: string;
-  altText: string;
-  description: string;
-  mediaType: string;
-  mimeType: string;
-  sourceUrl: string;
-  width?: number;
-  height?: number;
-  filesize?: number;
-  date: string;
-  link: string;
-  slug: string;
-}
-
-interface MediaUploadOptions {
-  title?: string;
-  caption?: string;
-  altText?: string;
-  description?: string;
-}
-
-interface MediaListOptions {
-  page?: number;
-  perPage?: number;
-  mediaType?: string;
-  mimeType?: string;
-  orderBy?: string;
-  order?: string;
-  parent?: number;
-}
-
-interface MediaSearchOptions {
-  query: string;
-  mediaType?: string;
-  dateAfter?: string;
-  dateBefore?: string;
-  limit?: number;
-}
-
 
 
 export function setWordPressConfig(config: Partial<WordPressConfig>): void {

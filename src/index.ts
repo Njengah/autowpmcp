@@ -43,7 +43,6 @@ server.tool(
   },
   async ({ siteUrl, username, password, appPassword }) => {
     try {
-      // Validate credentials
       if (!password && !appPassword) {
         return {
           content: [{
@@ -54,13 +53,10 @@ server.tool(
         };
       }
 
-      // Update config
       setWordPressConfig({ siteUrl, username, password, appPassword });
       
-      // Test authentication
       const authResult = await testAuthentication();
       
-      // Type-safe success check
       if (!authResult.success || !authResult.userInfo) {
         return {
           content: [{
@@ -70,8 +66,6 @@ server.tool(
           isError: true
         };
       }
-
-      // Safe role formatting
       const roles = authResult.userInfo.roles.join(', ') || 'no roles assigned';
       
       return {
@@ -118,19 +112,10 @@ server.tool(
 // REGISTER MODULAR TOOL SETS
 // ============================================
 
-  // Register all post-related tools
   registerPostTools(server);
-
-  // Register media-related tools
   registerMediaTools(server);
-
-  // Register Taxonomy tools
   registerTaxonomyTools(server);
-
-  // Register user and role management tools
-   registerUserTools(server);
-
-  // Register system and security tools
+  registerUserTools(server);
   // registerSystemTools(server);
 
 // ============================================
