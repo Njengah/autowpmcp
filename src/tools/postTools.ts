@@ -4,10 +4,10 @@ import { z } from "zod";
 import { 
   createPost, 
   // TODO : Add these imports as I implement the functions
-  // updatePost,
-  // deletePost,
-  // getPost,
-  // listPosts
+   updatePost,
+   deletePost,
+   getPost,
+   listPosts
 } from "../wordpress/api.js";
 import { saveDraft, loadDraft, truncateContent, formatPostContent } from '../utils/helpers.js';
 
@@ -171,7 +171,7 @@ export function registerPostTools(server: McpServer) {
     async ({ postId, title, content, status, excerpt, categories, tags }) => {
       try {
         // TODO: Implement updatePost in wordpress/api.js
-        // const result = await updatePost(postId, { title, content, status, excerpt, categories, tags });
+        const result = await updatePost(postId, { title, content, status, excerpt, categories, tags });
         
         return {
           content: [{
@@ -205,7 +205,7 @@ export function registerPostTools(server: McpServer) {
     async ({ postId, includeRevisions }) => {
       try {
         // TODO: Implement getPost in wordpress/api.js
-        // const result = await getPost(postId, includeRevisions);
+         const result = await getPost(postId, includeRevisions);
         
         return {
           content: [{
@@ -245,7 +245,8 @@ export function registerPostTools(server: McpServer) {
     async ({ page, perPage, status, author, categories, tags, search, orderBy, order }) => {
       try {
         // TODO: Implement listPosts in wordpress/api.js
-        // const result = await listPosts({ page, perPage, status, author, categories, tags, search, orderBy, order });
+        
+        const result = await listPosts({ page, perPage, status, author, categories, tags, search, orderBy, order });
         
         return {
           content: [{
@@ -278,7 +279,7 @@ export function registerPostTools(server: McpServer) {
     async ({ postId, force }) => {
       try {
         // TODO: Implement deletePost in wordpress/api.js
-        // const result = await deletePost(postId, force);
+         const result = await deletePost(postId, force);
         
         return {
           content: [{
