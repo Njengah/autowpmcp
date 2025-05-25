@@ -1,6 +1,6 @@
 # AutoWP MCP Server
 
-![AutoWP MCP Login Prompt Example](screenshots/autowp_banner.png)
+![AutoWP MCP Login Prompt Example](screenshots/autowp_banner_.png)
 
 ![MCP badge](https://badge.mcpx.dev "MCP") ![MCP Server](https://badge.mcpx.dev?type=server)
 
