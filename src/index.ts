@@ -8,7 +8,7 @@ import { registerPostTools } from "./tools/postTools.js";
 import { registerTaxonomyTools } from "./tools/taxonomyTools.js"; 
 import { registerMediaTools } from "./tools/mediaTools.js";
 import { registerUserTools } from "./tools/userTools.js";
-import { registerSystemTools } from "./tools/systemTools.js";
+
 
 // Import WordPress API functions for authentication
 import { 
@@ -131,7 +131,7 @@ server.tool(
    registerUserTools(server);
 
   // Register system and security tools
-  registerSystemTools(server);
+  // registerSystemTools(server);
 
 // ============================================
 // SERVER STARTUP

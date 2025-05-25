@@ -10,6 +10,6 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "_docs/premium tools/systemTools.ts"],
   "exclude": ["node_modules"]
 }
