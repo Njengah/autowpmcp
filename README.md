@@ -1,4 +1,4 @@
-# AutoWP MCP Server
+# AutoWP MCP Server - WordPress Automation MCP Server
 
 ![AutoWP MCP Login Prompt Example](screenshots/autowp_banner_.png)
 
