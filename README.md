@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/njengah-autowpmcp-badge.png)](https://mseep.ai/app/njengah-autowpmcp)
+
 # AutoWP MCP Server
 
 ![AutoWP MCP Login Prompt Example](screenshots/autowp_banner_.png)
