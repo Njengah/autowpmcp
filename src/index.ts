@@ -8,6 +8,7 @@ import { registerPostTools } from "./tools/postTools.js";
 import { registerTaxonomyTools } from "./tools/taxonomyTools.js"; 
 import { registerMediaTools } from "./tools/mediaTools.js";
 import { registerUserTools } from "./tools/userTools.js";
+import { registerWooCommerceTools } from "./tools/woocommerceTools.js";
 
 
 // Import WordPress API functions for authentication
@@ -116,6 +117,7 @@ server.tool(
   registerMediaTools(server);
   registerTaxonomyTools(server);
   registerUserTools(server);
+  registerWooCommerceTools(server);
   // registerSystemTools(server);
 
 // ============================================

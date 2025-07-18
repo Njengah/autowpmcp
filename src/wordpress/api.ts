@@ -38,6 +38,44 @@ export interface WordPressConfig {
   isAuthenticated: boolean;
 }
 
+interface WCProduct {
+  id: number;
+  name: string;
+  description: string;
+  short_description: string;
+  regular_price: string;
+  sale_price: string;
+  status: string;
+  permalink: string;
+  stock_quantity: number;
+  manage_stock: boolean;
+  in_stock: boolean;
+  categories: any[];
+  tags: any[];
+  images: any[];
+  date_created: string;
+  date_modified: string;
+  type: string;
+}
+
+interface WCOrder {
+  id: number;
+  number: string;
+  status: string;
+  currency: string;
+  total: string;
+  total_tax: string;
+  customer_id: number;
+  billing: any;
+  shipping: any;
+  line_items: any[];
+  payment_method: string;
+  payment_method_title: string;
+  date_created: string;
+  date_modified: string;
+  date_completed: string;
+  date_paid: string;
+}
 
 let wpConfig: WordPressConfig = {
   siteUrl: '',
@@ -1492,3 +1530,318 @@ export async function optimizeMedia(
    };
  }
 }
+
+
+/***
+ * WooCommerce 
+ */
+/**
+ * Create a WooCommerce product
+ */
+export async function createProduct(productData: {
+  name: string;
+  regular_price: string;
+  description?: string;
+  short_description?: string;
+  status?: string;
+  manage_stock?: boolean;
+  stock_quantity?: number;
+}): Promise<{ success: boolean; product?: any; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const response = await axios.post<WCProduct>(
+      `${wpConfig.siteUrl}/wp-json/wc/v3/products`,
+      {
+        name: productData.name,
+        regular_price: productData.regular_price,
+        description: productData.description || '',
+        short_description: productData.short_description || '',
+        status: productData.status || 'draft',
+        manage_stock: productData.manage_stock || false,
+        stock_quantity: productData.stock_quantity || 0,
+        type: 'simple'
+      },
+      { 
+        headers: { 
+          'Authorization': authHeader, 
+          'Content-Type': 'application/json' 
+        } 
+      }
+    );
+
+    return {
+      success: true,
+      product: {
+        id: response.data.id,
+        name: response.data.name,
+        price: response.data.regular_price,
+        status: response.data.status,
+        permalink: response.data.permalink,
+        stock_quantity: response.data.stock_quantity,
+        manage_stock: response.data.manage_stock
+      }
+    };
+  } catch (error: unknown) {
+    console.error('Error creating product:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+/**
+ * Get a WooCommerce product by ID
+ */
+export async function getProduct(productId: number): Promise<{ success: boolean; product?: any; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const response = await axios.get<WCProduct>(
+      `${wpConfig.siteUrl}/wp-json/wc/v3/products/${productId}`,
+      { headers: { 'Authorization': authHeader } }
+    );
+
+    return {
+      success: true,
+      product: {
+        id: response.data.id,
+        name: response.data.name,
+        description: response.data.description,
+        short_description: response.data.short_description,
+        price: response.data.regular_price,
+        sale_price: response.data.sale_price,
+        status: response.data.status,
+        permalink: response.data.permalink,
+        stock_quantity: response.data.stock_quantity,
+        manage_stock: response.data.manage_stock,
+        in_stock: response.data.in_stock,
+        categories: response.data.categories,
+        tags: response.data.tags,
+        images: response.data.images,
+        date_created: response.data.date_created,
+        date_modified: response.data.date_modified
+      }
+    };
+  } catch (error: unknown) {
+    console.error('Error getting product:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+/**
+ * List WooCommerce products
+ */
+export async function listProducts(options: {
+  page?: number;
+  per_page?: number;
+  status?: string;
+  search?: string;
+} = {}): Promise<{ success: boolean; products?: any[]; pagination?: any; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const params = new URLSearchParams();
+    
+    if (options.page) params.append('page', options.page.toString());
+    if (options.per_page) params.append('per_page', options.per_page.toString());
+    if (options.status && options.status !== 'any') params.append('status', options.status);
+    if (options.search) params.append('search', options.search);
+
+    const response = await axios.get<WCProduct[]>(
+      `${wpConfig.siteUrl}/wp-json/wc/v3/products?${params.toString()}`,
+      { headers: { 'Authorization': authHeader } }
+    );
+
+    const products = response.data.map((product: WCProduct) => ({
+      id: product.id,
+      name: product.name,
+      price: product.regular_price,
+      sale_price: product.sale_price,
+      status: product.status,
+      permalink: product.permalink,
+      stock_quantity: product.stock_quantity,
+      manage_stock: product.manage_stock,
+      in_stock: product.in_stock,
+      date_created: product.date_created,
+      date_modified: product.date_modified
+    }));
+
+    return {
+      success: true,
+      products,
+      pagination: {
+        total: parseInt(response.headers['x-wp-total'] || '0'),
+        totalPages: parseInt(response.headers['x-wp-totalpages'] || '0'),
+        currentPage: options.page || 1,
+        perPage: options.per_page || 10
+      }
+    };
+  } catch (error: unknown) {
+    console.error('Error listing products:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+/**
+ * Get a WooCommerce order by ID
+ */
+export async function getOrder(orderId: number): Promise<{ success: boolean; order?: any; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const response = await axios.get<WCOrder>(
+      `${wpConfig.siteUrl}/wp-json/wc/v3/orders/${orderId}`,
+      { headers: { 'Authorization': authHeader } }
+    );
+
+    return {
+      success: true,
+      order: {
+        id: response.data.id,
+        number: response.data.number,
+        status: response.data.status,
+        currency: response.data.currency,
+        total: response.data.total,
+        total_tax: response.data.total_tax,
+        customer_id: response.data.customer_id,
+        billing: response.data.billing,
+        shipping: response.data.shipping,
+        line_items: response.data.line_items,
+        payment_method: response.data.payment_method,
+        payment_method_title: response.data.payment_method_title,
+        date_created: response.data.date_created,
+        date_modified: response.data.date_modified,
+        date_completed: response.data.date_completed,
+        date_paid: response.data.date_paid
+      }
+    };
+  } catch (error: unknown) {
+    console.error('Error getting order:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+/**
+ * List WooCommerce orders
+ */
+export async function listOrders(options: {
+  page?: number;
+  per_page?: number;
+  status?: string;
+  customer?: number;
+} = {}): Promise<{ success: boolean; orders?: any[]; pagination?: any; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const params = new URLSearchParams();
+    
+    if (options.page) params.append('page', options.page.toString());
+    if (options.per_page) params.append('per_page', options.per_page.toString());
+    if (options.status && options.status !== 'any') params.append('status', options.status);
+    if (options.customer) params.append('customer', options.customer.toString());
+
+    const response = await axios.get<WCOrder[]>(
+      `${wpConfig.siteUrl}/wp-json/wc/v3/orders?${params.toString()}`,
+      { headers: { 'Authorization': authHeader } }
+    );
+
+    const orders = response.data.map((order: WCOrder) => ({
+      id: order.id,
+      number: order.number,
+      status: order.status,
+      currency: order.currency,
+      total: order.total,
+      customer_id: order.customer_id,
+      billing: {
+        first_name: order.billing?.first_name,
+        last_name: order.billing?.last_name,
+        email: order.billing?.email
+      },
+      payment_method_title: order.payment_method_title,
+      date_created: order.date_created,
+      date_modified: order.date_modified,
+      line_items_count: order.line_items?.length || 0
+    }));
+
+    return {
+      success: true,
+      orders,
+      pagination: {
+        total: parseInt(response.headers['x-wp-total'] || '0'),
+        totalPages: parseInt(response.headers['x-wp-totalpages'] || '0'),
+        currentPage: options.page || 1,
+        perPage: options.per_page || 10
+      }
+    };
+  } catch (error: unknown) {
+    console.error('Error listing orders:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+/**
+ * Update WooCommerce order status
+ */
+export async function updateOrderStatus(orderId: number, status: string): Promise<{ success: boolean; order?: any; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const response = await axios.put<WCOrder>(
+      `${wpConfig.siteUrl}/wp-json/wc/v3/orders/${orderId}`,
+      { status },
+      { 
+        headers: { 
+          'Authorization': authHeader, 
+          'Content-Type': 'application/json' 
+        } 
+      }
+    );
+
+    return {
+      success: true,
+      order: {
+        id: response.data.id,
+        number: response.data.number,
+        status: response.data.status,
+        date_modified: response.data.date_modified
+      }
+    };
+  } catch (error: unknown) {
+    console.error('Error updating order status:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+// Helper function to check if error is an Axios error (if not already defined)
+// function isAxiosError(error: any): error is import('axios').AxiosError {
+//   return error && error.isAxiosError === true;
+// }
