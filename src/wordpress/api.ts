@@ -1492,3 +1492,499 @@ export async function optimizeMedia(
    };
  }
 }
+
+/**
+ *  System and Security Tools  
+ */
+
+// System & Security API Methods for wordpress/api.js
+
+// System & Security API Methods - Fixed TypeScript versions
+
+export async function testWpConnection(includeDetails: boolean = false): Promise<{
+  success: boolean;
+  siteInfo?: {
+    name: string;
+    url: string;
+    version: string;
+    apiStatus: string;
+    phpVersion?: string;
+    mysqlVersion?: string;
+  };
+  error?: any;
+}> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+    
+    const authHeader = await getAuthHeader();
+    const response = await axios.get<any>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/`,
+      { headers: { 'Authorization': authHeader } }
+    );
+    
+    let siteInfo: any = {
+      name: response.data.name || 'Unknown',
+      url: response.data.url || wpConfig.siteUrl,
+      version: response.data.version || 'Unknown',
+      apiStatus: 'Connected'
+    };
+
+    if (includeDetails) {
+      try {
+        const systemResponse = await axios.get<WPUserResponse>(
+          `${wpConfig.siteUrl}/wp-json/wp/v2/users/me`,
+          { headers: { 'Authorization': authHeader } }
+        );
+        // Add any additional details from system response if available
+      } catch (systemError) {
+        // System details not critical, continue
+      }
+    }
+
+    return {
+      success: true,
+      siteInfo
+    };
+  } catch (error: unknown) {
+    console.error('Error testing WordPress connection:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function getSiteHealth(
+  includeRecommendations: boolean = true,
+  checkCriticalOnly: boolean = false
+): Promise<{
+  success: boolean;
+  health?: {
+    status: string;
+    score: number;
+    criticalIssues: any[];
+    recommendations?: any[];
+  };
+  error?: any;
+}> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+    
+    const authHeader = await getAuthHeader();
+    const response = await axios.get<any>(
+      `${wpConfig.siteUrl}/wp-json/wp-site-health/v1/status`,
+      { headers: { 'Authorization': authHeader } }
+    );
+    
+    let healthData: any = {
+      status: response.data.status || 'unknown',
+      score: response.data.score || 0,
+      criticalIssues: response.data.critical || []
+    };
+
+    if (includeRecommendations && !checkCriticalOnly) {
+      const recommendationsResponse = await axios.get<any>(
+        `${wpConfig.siteUrl}/wp-json/wp-site-health/v1/tests`,
+        { headers: { 'Authorization': authHeader } }
+      );
+      healthData = {
+        ...healthData,
+        recommendations: recommendationsResponse.data.recommended || []
+      };
+    }
+
+    return {
+      success: true,
+      health: healthData
+    };
+  } catch (error: unknown) {
+    console.error('Error getting site health:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function checkCoreUpdates(includePrerelease: boolean = false): Promise<{
+  success: boolean;
+  updates?: {
+    current: string;
+    available?: string;
+    updateAvailable: boolean;
+    securityUpdate: boolean;
+    prerelease?: boolean;
+  };
+  error?: any;
+}> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+    
+    const authHeader = await getAuthHeader();
+    const params = includePrerelease ? '?include_prerelease=true' : '';
+    const response = await axios.get<any>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/core-updates${params}`,
+      { headers: { 'Authorization': authHeader } }
+    );
+    
+    return {
+      success: true,
+      updates: {
+        current: response.data.current_version || 'Unknown',
+        available: response.data.available_version,
+        updateAvailable: response.data.update_available || false,
+        securityUpdate: response.data.security_update || false,
+        prerelease: response.data.prerelease || false
+      }
+    };
+  } catch (error: unknown) {
+    console.error('Error checking core updates:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function applyCoreUpdate(
+  version?: string,
+  createBackup: boolean = true,
+  forceUpdate: boolean = false
+): Promise<{
+  success: boolean;
+  update?: {
+    fromVersion: string;
+    toVersion: string;
+    status: string;
+    backupCreated: boolean;
+  };
+  error?: any;
+}> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+    
+    const authHeader = await getAuthHeader();
+    const updateData: any = {
+      create_backup: createBackup,
+      force_update: forceUpdate
+    };
+    
+    if (version) {
+      updateData.version = version;
+    }
+
+    const response = await axios.post<any>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/core-updates`,
+      updateData,
+      { headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' } }
+    );
+    
+    return {
+      success: true,
+      update: {
+        fromVersion: response.data.from_version || 'Unknown',
+        toVersion: response.data.to_version || 'Unknown',
+        status: response.data.status || 'completed',
+        backupCreated: response.data.backup_created || false
+      }
+    };
+  } catch (error: unknown) {
+    console.error('Error applying core update:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function scanForMalware(
+  scanType: string = 'quick',
+  quarantineThreats: boolean = false,
+  securityPlugin: string = 'auto'
+): Promise<{
+  success: boolean;
+  scan?: {
+    scanId: string;
+    status: string;
+    threatsFound: number;
+    cleanFiles: number;
+    quarantinedFiles: number;
+    details: any[];
+  };
+  error?: any;
+}> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+    
+    const authHeader = await getAuthHeader();
+    const scanData = {
+      scan_type: scanType,
+      quarantine_threats: quarantineThreats,
+      security_plugin: securityPlugin
+    };
+
+    const response = await axios.post<any>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/security-scan`,
+      scanData,
+      { headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' } }
+    );
+    
+    return {
+      success: true,
+      scan: {
+        scanId: response.data.scan_id || 'unknown',
+        status: response.data.status || 'completed',
+        threatsFound: response.data.threats_found || 0,
+        cleanFiles: response.data.clean_files || 0,
+        quarantinedFiles: response.data.quarantined_files || 0,
+        details: response.data.details || []
+      }
+    };
+  } catch (error: unknown) {
+    console.error('Error scanning for malware:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function lockSite(
+  action: string,
+  message?: string,
+  allowedIPs?: string[],
+  duration?: number
+): Promise<{
+  success: boolean;
+  maintenance?: {
+    status: string;
+    message: string;
+    allowedIPs: string[];
+    autoDisableAt?: string;
+  };
+  error?: any;
+}> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+    
+    const authHeader = await getAuthHeader();
+    
+    if (action === 'status') {
+      const response = await axios.get<any>(
+        `${wpConfig.siteUrl}/wp-json/wp/v2/maintenance-mode`,
+        { headers: { 'Authorization': authHeader } }
+      );
+      
+      return {
+        success: true,
+        maintenance: {
+          status: response.data.status || 'disabled',
+          message: response.data.message || '',
+          allowedIPs: response.data.allowed_ips || [],
+          autoDisableAt: response.data.auto_disable_at
+        }
+      };
+    }
+
+    const maintenanceData: any = {
+      action: action,
+      message: message || 'Site is temporarily under maintenance',
+      allowed_ips: allowedIPs || []
+    };
+
+    if (duration && action === 'enable') {
+      maintenanceData.duration = duration;
+    }
+
+    const response = await axios.post<any>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/maintenance-mode`,
+      maintenanceData,
+      { headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' } }
+    );
+    
+    return {
+      success: true,
+      maintenance: {
+        status: response.data.status || action,
+        message: response.data.message || maintenanceData.message,
+        allowedIPs: response.data.allowed_ips || allowedIPs || [],
+        autoDisableAt: response.data.auto_disable_at
+      }
+    };
+  } catch (error: unknown) {
+    console.error('Error managing maintenance mode:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function clearCache(
+  cacheType: string = 'all',
+  cachingPlugin: string = 'auto',
+  purgeExternal: boolean = true
+): Promise<{
+  success: boolean;
+  cache?: {
+    clearedTypes: string[];
+    plugin: string;
+    externalPurged: boolean;
+    bytesCleared?: number;
+  };
+  error?: any;
+}> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+    
+    const authHeader = await getAuthHeader();
+    const cacheData = {
+      cache_type: cacheType,
+      caching_plugin: cachingPlugin,
+      purge_external: purgeExternal
+    };
+
+    const response = await axios.post<any>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/clear-cache`,
+      cacheData,
+      { headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' } }
+    );
+    
+    return {
+      success: true,
+      cache: {
+        clearedTypes: response.data.cleared_types || [cacheType],
+        plugin: response.data.plugin_used || cachingPlugin,
+        externalPurged: response.data.external_purged || false,
+        bytesCleared: response.data.bytes_cleared
+      }
+    };
+  } catch (error: unknown) {
+    console.error('Error clearing cache:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function backupDatabase(
+  backupName?: string,
+  includeDrafts: boolean = true,
+  includeMedia: boolean = false,
+  compressionLevel: string = 'medium',
+  backupPlugin: string = 'auto',
+  storageLocation: string = 'local'
+): Promise<{
+  success: boolean;
+  backup?: {
+    backupId: string;
+    name: string;
+    size: number;
+    location: string;
+    plugin: string;
+    createdAt: string;
+  };
+  error?: any;
+}> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+    
+    const authHeader = await getAuthHeader();
+    const backupData = {
+      backup_name: backupName || `backup_${new Date().toISOString().split('T')[0]}`,
+      include_drafts: includeDrafts,
+      include_media: includeMedia,
+      compression_level: compressionLevel,
+      backup_plugin: backupPlugin,
+      storage_location: storageLocation
+    };
+
+    const response = await axios.post<any>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/database-backup`,
+      backupData,
+      { headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' } }
+    );
+    
+    return {
+      success: true,
+      backup: {
+        backupId: response.data.backup_id || 'unknown',
+        name: response.data.name || backupData.backup_name,
+        size: response.data.size || 0,
+        location: response.data.location || storageLocation,
+        plugin: response.data.plugin_used || backupPlugin,
+        createdAt: response.data.created_at || new Date().toISOString()
+      }
+    };
+  } catch (error: unknown) {
+    console.error('Error creating database backup:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function getAuditLogs(options: {
+  logType?: string;
+  limit?: number;
+  dateFrom?: string;
+  dateTo?: string;
+  userId?: number;
+  severity?: string;
+  searchTerm?: string;
+}): Promise<{
+  success: boolean;
+  logs?: {
+    total: number;
+    entries: any[];
+    hasMore: boolean;
+  };
+  error?: any;
+}> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+    
+    const authHeader = await getAuthHeader();
+    const params = new URLSearchParams();
+    
+    if (options.logType && options.logType !== 'all') params.append('type', options.logType);
+    if (options.limit) params.append('per_page', options.limit.toString());
+    if (options.dateFrom) params.append('after', options.dateFrom);
+    if (options.dateTo) params.append('before', options.dateTo);
+    if (options.userId) params.append('user', options.userId.toString());
+    if (options.severity) params.append('severity', options.severity);
+    if (options.searchTerm) params.append('search', options.searchTerm);
+
+    const response = await axios.get<any>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/audit-logs?${params.toString()}`,
+      { headers: { 'Authorization': authHeader } }
+    );
+    
+    return {
+      success: true,
+      logs: {
+        total: parseInt(response.headers['x-wp-total'] || '0'),
+        entries: response.data || [],
+        hasMore: response.headers['x-wp-totalpages'] ? 
+          parseInt(response.headers['x-wp-totalpages']) > 1 : false
+      }
+    };
+  } catch (error: unknown) {
+    console.error('Error retrieving audit logs:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
