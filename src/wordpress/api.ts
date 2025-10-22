@@ -1102,6 +1102,30 @@ export async function listUserRoles(includeCapabilities: boolean = false): Promi
   }
 }
 
+export async function getAuthorUsername(authorId: number): Promise<{ success: boolean; username?: string; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const response = await axios.get<WPUser>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/users/${authorId}`,
+      { headers: { 'Authorization': authHeader } }
+    );
+
+    return {
+      success: true,
+      username: response.data.username
+    };
+  } catch (error: unknown) {
+    console.error('Error getting author username:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
 
 
 

@@ -3,14 +3,15 @@ import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 
 // TODO: Add these imports as you implement the functions in wordpress/api.js
-  import { 
+  import {
     listUsers,
     createUser,
     updateUser,
     disableUser,
     resetUserPassword,
     setUserRole,
-    listUserRoles
+    listUserRoles,
+    getAuthorUsername
   } from "../wordpress/api.js";
 
 import {
@@ -295,7 +296,7 @@ export function registerUserTools(server: McpServer) {
       try {
         // TODO: Implement listUserRoles in wordpress/api.js
            const result = await listUserRoles(includeCapabilities);
-        
+
         return {
           content: [{
             type: "text",
@@ -310,6 +311,47 @@ export function registerUserTools(server: McpServer) {
           content: [{
             type: "text",
             text: `Error listing user roles: ${errorMessage}`
+          }],
+          isError: true
+        };
+      }
+    }
+  );
+
+  // Get Author Username Tool
+  server.tool(
+    "get-author-username",
+    "Get the username of a WordPress author by their ID",
+    {
+      authorId: z.number().describe("The ID of the author")
+    },
+    async ({ authorId }) => {
+      try {
+        const result = await getAuthorUsername(authorId);
+
+        if (!result.success) {
+          return {
+            content: [{
+              type: "text",
+              text: `Error getting author username: ${result.error}`
+            }],
+            isError: true
+          };
+        }
+
+        return {
+          content: [{
+            type: "text",
+            text: `Author ID ${authorId} username: ${result.username}`
+          }]
+        };
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error("Error getting author username:", error);
+        return {
+          content: [{
+            type: "text",
+            text: `Error getting author username: ${errorMessage}`
           }],
           isError: true
         };
