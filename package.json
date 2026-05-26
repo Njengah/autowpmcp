@@ -1,32 +1,47 @@
 {
   "name": "autowp-mcp",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Model Context Protocol server for managing WordPress sites through the WordPress REST API.",
+  "main": "./build/index.js",
   "type": "module",
   "bin": {
     "autowp": "./build/index.js"
   },
   "scripts": {
     "start": "node build/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "tsc && chmod 755 build/index.js"
+    "test": "tsc --noEmit",
+    "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', 0o755)\""
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": [
+    "mcp",
+    "wordpress",
+    "automation",
+    "claude",
+    "model-context-protocol"
+  ],
+  "author": "Joe Njenga",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Njengah/autowpmcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Njengah/autowpmcp/issues"
+  },
+  "homepage": "https://github.com/Njengah/autowpmcp#readme",
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.11.4",
-    "axios": "^1.9.0",
-    "form-data": "^4.0.2",
-    "tinify": "^1.8.0",
-    "wpapi": "^1.2.2",
-    "zod": "^3.24.4"
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "axios": "^1.16.1",
+    "form-data": "^4.0.5",
+    "tinify": "^1.8.2",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/axios": "^0.9.36",
-    "@types/node": "^22.15.21",
-    "typescript": "^5.8.3"
+    "@types/node": "^25.9.1",
+    "typescript": "^6.0.3"
   },
   "files": [
     "build"

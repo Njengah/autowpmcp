@@ -13,11 +13,7 @@ import { setWordPressConfig, testSiteConnection, testAuthentication, } from "./w
 const server = new McpServer({
     name: "AutoWP",
     version: "1.0.0",
-    description: "WordPress Site Management via LLM example - Claude Desktop",
-    capabilities: {
-        resources: {},
-        tools: {}
-    }
+    description: "WordPress Site Management via LLM example - Claude Desktop"
 });
 // ============================================
 // AUTHENTICATION & SYSTEM TOOLS
@@ -79,8 +75,8 @@ server.tool("test-wp-connection", "Test if a WordPress site is reachable", {
         content: [{
                 type: "text",
                 text: isReachable
-                    ? `✅ WordPress REST API is reachable at ${siteUrl}`
-                    : `❌ Could not connect to WordPress at ${siteUrl}`
+                    ? `OK: WordPress REST API is reachable at ${siteUrl}`
+                    : `ERROR: Could not connect to WordPress at ${siteUrl}`
             }]
     };
 });
