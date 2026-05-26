@@ -1,6 +1,6 @@
 [![MseeP.ai Security Assessment Badge](https://mseep.net/pr/njengah-autowpmcp-badge.png)](https://mseep.ai/app/njengah-autowpmcp)
 
-# AutoWP MCP Server
+# AutoWP MCP Server - WordPress Automation MCP Server
 
 ![AutoWP MCP Login Prompt Example](screenshots/autowp_banner_.png)
 
@@ -46,6 +46,7 @@ It provides a secure, standardized way for AI assistants to interact with WordPr
    npm install
    npm run build
    npm start
+   ```
 
 2. **Configure Claude Desktop**
 
@@ -146,6 +147,13 @@ It provides a secure, standardized way for AI assistants to interact with WordPr
 
 ---
 
+## Site Settings Tools
+
+- **get-site-settings** – View WordPress site configuration and reading settings
+- **update-site-settings** – Update basic site configuration such as title, tagline, timezone, and front page behavior
+
+---
+
 ## Upcoming Tools
 
 ### Plugin Management
@@ -164,8 +172,6 @@ It provides a secure, standardized way for AI assistants to interact with WordPr
 
 #### Settings Management
 
-- **get-reading-settings** – View WordPress reading/display settings
-- **update-reading-settings** – Modify basic WordPress reading settings
 - **manage-comment-settings** – Manage comment-related settings (Planned but not registered)
 - **export-settings** – Export current WordPress site settings (Planned)
 - **import-settings** – Import WordPress site settings from a file (Planned)

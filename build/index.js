@@ -7,17 +7,14 @@ import { registerPostTools } from "./tools/postTools.js";
 import { registerTaxonomyTools } from "./tools/taxonomyTools.js";
 import { registerMediaTools } from "./tools/mediaTools.js";
 import { registerUserTools } from "./tools/userTools.js";
+import { registerSettingsTools } from "./tools/settingsTools.js";
 // Import WordPress API functions for authentication
 import { setWordPressConfig, testSiteConnection, testAuthentication, } from "./wordpress/api.js";
 // Create the MCP server instance with metadata
 const server = new McpServer({
     name: "AutoWP",
     version: "1.0.0",
-    description: "WordPress Site Management via LLM example - Claude Desktop",
-    capabilities: {
-        resources: {},
-        tools: {}
-    }
+    description: "WordPress Site Management via LLM example - Claude Desktop"
 });
 // ============================================
 // AUTHENTICATION & SYSTEM TOOLS
@@ -79,8 +76,8 @@ server.tool("test-wp-connection", "Test if a WordPress site is reachable", {
         content: [{
                 type: "text",
                 text: isReachable
-                    ? `✅ WordPress REST API is reachable at ${siteUrl}`
-                    : `❌ Could not connect to WordPress at ${siteUrl}`
+                    ? `OK: WordPress REST API is reachable at ${siteUrl}`
+                    : `ERROR: Could not connect to WordPress at ${siteUrl}`
             }]
     };
 });
@@ -91,6 +88,7 @@ registerPostTools(server);
 registerMediaTools(server);
 registerTaxonomyTools(server);
 registerUserTools(server);
+registerSettingsTools(server);
 // registerSystemTools(server);
 // ============================================
 // SERVER STARTUP
