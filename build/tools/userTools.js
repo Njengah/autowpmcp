@@ -1,6 +1,6 @@
 import { z } from "zod";
 // TODO: Add these imports as you implement the functions in wordpress/api.js
-import { createUser, updateUser, disableUser, resetUserPassword, setUserRole, listUserRoles } from "../wordpress/api.js";
+import { createUser, updateUser, disableUser, resetUserPassword, setUserRole, listUserRoles, getAuthorUsername } from "../wordpress/api.js";
 /**
  * Register all user and role management tools with the MCP server
  */
@@ -250,6 +250,40 @@ export function registerUserTools(server) {
                 content: [{
                         type: "text",
                         text: `Error listing user roles: ${errorMessage}`
+                    }],
+                isError: true
+            };
+        }
+    });
+    // Get Author Username Tool
+    server.tool("get-author-username", "Get the username of a WordPress author by their ID", {
+        authorId: z.number().describe("The ID of the author")
+    }, async ({ authorId }) => {
+        try {
+            const result = await getAuthorUsername(authorId);
+            if (!result.success) {
+                return {
+                    content: [{
+                            type: "text",
+                            text: `Error getting author username: ${result.error}`
+                        }],
+                    isError: true
+                };
+            }
+            return {
+                content: [{
+                        type: "text",
+                        text: `Author ID ${authorId} username: ${result.username}`
+                    }]
+            };
+        }
+        catch (error) {
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            console.error("Error getting author username:", error);
+            return {
+                content: [{
+                        type: "text",
+                        text: `Error getting author username: ${errorMessage}`
                     }],
                 isError: true
             };

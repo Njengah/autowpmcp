@@ -915,6 +915,27 @@ export async function listUserRoles(includeCapabilities = false) {
         };
     }
 }
+export async function getAuthorUsername(authorId) {
+    try {
+        if (!wpConfig.siteUrl)
+            throw new Error('WordPress site URL not configured');
+        if (!wpConfig.isAuthenticated)
+            throw new Error('Not authenticated');
+        const authHeader = await getAuthHeader();
+        const response = await axios.get(`${wpConfig.siteUrl}/wp-json/wp/v2/users/${authorId}`, { headers: { 'Authorization': authHeader } });
+        return {
+            success: true,
+            username: response.data.username
+        };
+    }
+    catch (error) {
+        console.error('Error getting author username:', error);
+        return {
+            success: false,
+            error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+        };
+    }
+}
 // Media Tools  
 export async function uploadMedia(source, options = {}) {
     try {
