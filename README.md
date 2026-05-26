@@ -147,6 +147,13 @@ It provides a secure, standardized way for AI assistants to interact with WordPr
 
 ---
 
+## Site Settings Tools
+
+- **get-site-settings** – View WordPress site configuration and reading settings
+- **update-site-settings** – Update basic site configuration such as title, tagline, timezone, and front page behavior
+
+---
+
 ## Upcoming Tools
 
 ### Plugin Management
@@ -165,8 +172,6 @@ It provides a secure, standardized way for AI assistants to interact with WordPr
 
 #### Settings Management
 
-- **get-reading-settings** – View WordPress reading/display settings
-- **update-reading-settings** – Modify basic WordPress reading settings
 - **manage-comment-settings** – Manage comment-related settings (Planned but not registered)
 - **export-settings** – Export current WordPress site settings (Planned)
 - **import-settings** – Import WordPress site settings from a file (Planned)
