@@ -46,6 +46,7 @@ It provides a secure, standardized way for AI assistants to interact with WordPr
    npm install
    npm run build
    npm start
+   ```
 
 2. **Configure Claude Desktop**
 
