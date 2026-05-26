@@ -9,6 +9,7 @@ import { registerTaxonomyTools } from "./tools/taxonomyTools.js";
 import { registerMediaTools } from "./tools/mediaTools.js";
 import { registerUserTools } from "./tools/userTools.js";
 import { registerSettingsTools } from "./tools/settingsTools.js";
+import { registerPluginTools } from "./tools/pluginTools.js";
 
 
 // Import WordPress API functions for authentication
@@ -114,6 +115,7 @@ server.tool(
   registerTaxonomyTools(server);
   registerUserTools(server);
   registerSettingsTools(server);
+  registerPluginTools(server);
   // registerSystemTools(server);
 
 // ============================================

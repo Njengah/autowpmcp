@@ -17,6 +17,8 @@ import {
   ListPostsOptions,
   WPPostDetailed,
   WPDeleteResponse,
+  WPPluginResponse,
+  WPPlugin,
   WPSiteSettings,
   UpdateSiteSettingsData,
   WPTaxonomy,
@@ -308,6 +310,62 @@ export async function deletePost(
     };
   } catch (error: unknown) {
     console.error('Error deleting post:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function listPlugins(options: {
+  page?: number;
+  perPage?: number;
+  search?: string;
+  status?: "inactive" | "active";
+  context?: "view" | "embed" | "edit";
+} = {}): Promise<{ success: boolean; plugins?: WPPlugin[]; totalPages?: number; totalPlugins?: number; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const params = new URLSearchParams();
+
+    if (options.page) params.append('page', options.page.toString());
+    if (options.perPage) params.append('per_page', options.perPage.toString());
+    if (options.search) params.append('search', options.search);
+    if (options.status) params.append('status', options.status);
+    if (options.context) params.append('context', options.context);
+
+    const response = await axios.get<WPPluginResponse[]>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/plugins?${params.toString()}`,
+      { headers: { 'Authorization': authHeader } }
+    );
+
+    const totalPages = parseInt(response.headers['x-wp-totalpages'] || '1');
+    const totalPlugins = parseInt(response.headers['x-wp-total'] || '0');
+
+    return {
+      success: true,
+      plugins: response.data.map(plugin => ({
+        plugin: plugin.plugin,
+        status: plugin.status,
+        name: plugin.name,
+        pluginUri: plugin.plugin_uri,
+        author: typeof plugin.author === 'string' ? plugin.author : plugin.author?.name || '',
+        authorUri: plugin.author_uri,
+        description: typeof plugin.description === 'string' ? plugin.description : plugin.description?.rendered || plugin.description?.raw || '',
+        version: plugin.version,
+        networkOnly: plugin.network_only,
+        requiresWp: plugin.requires_wp,
+        requiresPhp: plugin.requires_php,
+        textdomain: plugin.textdomain
+      })),
+      totalPages,
+      totalPlugins
+    };
+  } catch (error: unknown) {
+    console.error('Error listing plugins:', error);
     return {
       success: false,
       error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
