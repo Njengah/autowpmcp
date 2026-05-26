@@ -17,6 +17,8 @@ import {
   ListPostsOptions,
   WPPostDetailed,
   WPDeleteResponse,
+  WPSiteSettings,
+  UpdateSiteSettingsData,
   WPTaxonomy,
   WPUser,
   WPRole,
@@ -306,6 +308,57 @@ export async function deletePost(
     };
   } catch (error: unknown) {
     console.error('Error deleting post:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function getSiteSettings(): Promise<{ success: boolean; settings?: WPSiteSettings; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const response = await axios.get<WPSiteSettings>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/settings`,
+      { headers: { 'Authorization': authHeader } }
+    );
+
+    return {
+      success: true,
+      settings: response.data
+    };
+  } catch (error: unknown) {
+    console.error('Error getting site settings:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+    };
+  }
+}
+
+export async function updateSiteSettings(
+  updates: UpdateSiteSettingsData
+): Promise<{ success: boolean; settings?: WPSiteSettings; error?: any }> {
+  try {
+    if (!wpConfig.siteUrl) throw new Error('WordPress site URL not configured');
+    if (!wpConfig.isAuthenticated) throw new Error('Not authenticated');
+
+    const authHeader = await getAuthHeader();
+    const response = await axios.post<WPSiteSettings>(
+      `${wpConfig.siteUrl}/wp-json/wp/v2/settings`,
+      updates,
+      { headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' } }
+    );
+
+    return {
+      success: true,
+      settings: response.data
+    };
+  } catch (error: unknown) {
+    console.error('Error updating site settings:', error);
     return {
       success: false,
       error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'

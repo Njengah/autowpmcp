@@ -207,6 +207,48 @@ export async function deletePost(postId, force = false) {
         };
     }
 }
+export async function getSiteSettings() {
+    try {
+        if (!wpConfig.siteUrl)
+            throw new Error('WordPress site URL not configured');
+        if (!wpConfig.isAuthenticated)
+            throw new Error('Not authenticated');
+        const authHeader = await getAuthHeader();
+        const response = await axios.get(`${wpConfig.siteUrl}/wp-json/wp/v2/settings`, { headers: { 'Authorization': authHeader } });
+        return {
+            success: true,
+            settings: response.data
+        };
+    }
+    catch (error) {
+        console.error('Error getting site settings:', error);
+        return {
+            success: false,
+            error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+        };
+    }
+}
+export async function updateSiteSettings(updates) {
+    try {
+        if (!wpConfig.siteUrl)
+            throw new Error('WordPress site URL not configured');
+        if (!wpConfig.isAuthenticated)
+            throw new Error('Not authenticated');
+        const authHeader = await getAuthHeader();
+        const response = await axios.post(`${wpConfig.siteUrl}/wp-json/wp/v2/settings`, updates, { headers: { 'Authorization': authHeader, 'Content-Type': 'application/json' } });
+        return {
+            success: true,
+            settings: response.data
+        };
+    }
+    catch (error) {
+        console.error('Error updating site settings:', error);
+        return {
+            success: false,
+            error: error instanceof Error ? formatErrorResponse(error) : 'Unknown error'
+        };
+    }
+}
 export async function getPost(postId, includeRevisions = false) {
     try {
         if (!wpConfig.siteUrl)
