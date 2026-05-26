@@ -81,6 +81,36 @@ export interface WPDeleteResponse {
   previous: any;
 }
 
+export interface WPPluginResponse {
+  plugin: string;
+  status: "inactive" | "active";
+  name: string;
+  plugin_uri: string;
+  author: string | { name?: string; url?: string };
+  author_uri: string;
+  description: string | { raw?: string; rendered?: string; protected?: boolean };
+  version: string;
+  network_only: boolean;
+  requires_wp: string;
+  requires_php: string;
+  textdomain: string;
+}
+
+export interface WPPlugin {
+  plugin: string;
+  status: "inactive" | "active";
+  name: string;
+  pluginUri: string;
+  author: string;
+  authorUri: string;
+  description: string;
+  version: string;
+  networkOnly: boolean;
+  requiresWp: string;
+  requiresPhp: string;
+  textdomain: string;
+}
+
 export interface WPSiteSettings {
   title?: string;
   description?: string;

@@ -8,6 +8,7 @@ import { registerTaxonomyTools } from "./tools/taxonomyTools.js";
 import { registerMediaTools } from "./tools/mediaTools.js";
 import { registerUserTools } from "./tools/userTools.js";
 import { registerSettingsTools } from "./tools/settingsTools.js";
+import { registerPluginTools } from "./tools/pluginTools.js";
 // Import WordPress API functions for authentication
 import { setWordPressConfig, testSiteConnection, testAuthentication, } from "./wordpress/api.js";
 // Create the MCP server instance with metadata
@@ -89,6 +90,7 @@ registerMediaTools(server);
 registerTaxonomyTools(server);
 registerUserTools(server);
 registerSettingsTools(server);
+registerPluginTools(server);
 // registerSystemTools(server);
 // ============================================
 // SERVER STARTUP

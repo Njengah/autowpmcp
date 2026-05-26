@@ -154,11 +154,16 @@ It provides a secure, standardized way for AI assistants to interact with WordPr
 
 ---
 
+## Plugin Management Tools
+
+- **list-plugins** – List installed WordPress plugins with activation status
+
+---
+
 ## Upcoming Tools
 
 ### Plugin Management
 
-- **list-plugins** – List all WordPress plugins with their activation status
 - **install-plugin** – Install a plugin from the WordPress.org repository
 - **toggle-plugin** – Activate or deactivate a WordPress plugin
 - **update-plugin** – Update a WordPress plugin to its latest version
